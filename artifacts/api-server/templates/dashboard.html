@@ -18,32 +18,40 @@
 <!-- Stats -->
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-icon blue">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </div>
+    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
     <div class="stat-label">Total Analyses</div>
     <div class="stat-value blue">{{ stats.total }}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon green">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-    </div>
+    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
     <div class="stat-label">Safe Jobs</div>
     <div class="stat-value green">{{ stats.safe }}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon red">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    </div>
-    <div class="stat-label">Fake Jobs</div>
+    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="stat-label">Fake Jobs Detected</div>
     <div class="stat-value red">{{ stats.fake }}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon orange">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-    </div>
+    <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div>
     <div class="stat-label">Reports Filed</div>
     <div class="stat-value orange">{{ stats.reports }}</div>
+  </div>
+</div>
+
+<!-- AI Briefing -->
+<div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border:none">
+  <div class="card-body" style="display:flex;align-items:flex-start;gap:16px">
+    <div style="width:40px;height:40px;background:rgba(37,99,235,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:12px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">AI Safety Briefing</div>
+      <div id="aiBriefing" style="font-size:13px;color:#cbd5e1;line-height:1.6">
+        <div class="spinner" style="width:16px;height:16px;border-color:rgba(255,255,255,.2);border-top-color:#60a5fa;display:inline-block"></div>
+        Loading personalized briefing...
+      </div>
+    </div>
   </div>
 </div>
 
@@ -59,22 +67,24 @@
     <div class="table-wrap">
       {% if recent %}
       <table>
-        <thead><tr><th>#</th><th>Job / Description</th><th>Result</th><th>Score</th><th>Date</th></tr></thead>
+        <thead><tr><th>#</th><th>Job / Description</th><th>Result</th><th>Fraud Score</th><th>Date</th></tr></thead>
         <tbody>
         {% for a in recent %}
-        <tr style="cursor:pointer" onclick="window.location='/result/{{a.id}}'">
+        <tr style="cursor:pointer" onclick="window.location='/result/{{ a.id }}'">
           <td style="font-weight:600;color:#64748b">{{ loop.index }}</td>
           <td>
             <div style="font-weight:600;font-size:13px">{{ a.job_title or (a.content[:40] + '...') }}</div>
             <div style="font-size:11px;color:#94a3b8;text-transform:capitalize">{{ a.input_type }}</div>
           </td>
+          <td><span class="badge {{ a.result }}">{% if a.result=='fake' %}🚫{% elif a.result=='safe' %}✅{% else %}⚠️{% endif %} {{ a.result.upper() }}</span></td>
           <td>
-            <span class="badge {{ a.result }}">
-              {% if a.result=='fake' %}🚫{% elif a.result=='safe' %}✅{% else %}⚠️{% endif %}
-              {{ a.result.upper() }}
-            </span>
+            <div style="font-weight:700;color:{% if a.result=='fake' %}#dc2626{% elif a.result=='safe' %}#16a34a{% else %}#d97706{% endif %}">
+              {{ a.fraud_score or a.confidence_score }}/100
+            </div>
+            <div class="risk-bar" style="width:80px;margin-top:3px">
+              <div class="risk-bar-fill {{ a.result }}" style="width:{{ a.fraud_score or a.confidence_score }}%"></div>
+            </div>
           </td>
-          <td style="font-weight:700">{{ a.confidence_score }}%</td>
           <td style="color:#64748b;font-size:12px">{{ a.created_at[:10] }}</td>
         </tr>
         {% endfor %}
@@ -89,27 +99,30 @@
     </div>
   </div>
 
-  <!-- Chart + Pie -->
   <div style="display:flex;flex-direction:column;gap:16px">
     <div class="card">
-      <div class="card-header"><div class="card-title">Analyze Over Time</div></div>
-      <div class="chart-wrap">
+      <div class="card-header"><div class="card-title">Fraud Trend (Last 7 Days)</div></div>
+      <div class="chart-wrap" style="height:200px">
         <canvas id="trendChart"></canvas>
       </div>
     </div>
     <div class="card">
-      <div class="card-header"><div class="card-title">Fake vs Safe</div></div>
-      <div style="display:flex;align-items:center;gap:20px;padding:16px">
-        <canvas id="pieChart" style="width:110px!important;height:110px!important;max-width:110px"></canvas>
+      <div class="card-header"><div class="card-title">Verdict Distribution</div></div>
+      <div style="display:flex;align-items:center;gap:20px;padding:14px 20px">
+        <canvas id="pieChart" style="width:90px!important;height:90px!important;max-width:90px"></canvas>
         <div>
-          {% set total = stats.safe + stats.fake %}
-          <div style="margin-bottom:8px">
-            <span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:50%;margin-right:6px"></span>
-            <span style="font-size:13px;font-weight:600">Safe: {{ ((stats.safe/total*100)|round(1)) if total > 0 else 0 }}%</span>
+          {% set total = stats.safe + stats.fake + stats.suspicious %}
+          <div style="margin-bottom:7px;display:flex;align-items:center;gap:8px">
+            <span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:50%"></span>
+            <span style="font-size:13px;font-weight:600">Safe: {{ stats.safe }} ({{ ((stats.safe/total*100)|round(1)) if total > 0 else 0 }}%)</span>
           </div>
-          <div>
-            <span style="display:inline-block;width:10px;height:10px;background:#dc2626;border-radius:50%;margin-right:6px"></span>
-            <span style="font-size:13px;font-weight:600">Fake: {{ ((stats.fake/total*100)|round(1)) if total > 0 else 0 }}%</span>
+          <div style="margin-bottom:7px;display:flex;align-items:center;gap:8px">
+            <span style="display:inline-block;width:10px;height:10px;background:#dc2626;border-radius:50%"></span>
+            <span style="font-size:13px;font-weight:600">Fake: {{ stats.fake }} ({{ ((stats.fake/total*100)|round(1)) if total > 0 else 0 }}%)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="display:inline-block;width:10px;height:10px;background:#d97706;border-radius:50%"></span>
+            <span style="font-size:13px;font-weight:600">Suspicious: {{ stats.suspicious }}</span>
           </div>
         </div>
       </div>
@@ -120,28 +133,34 @@
 
 {% block scripts %}
 <script>
-const chartData = {{ chart_data | tojson }};
-const labels = chartData.map(d => d.day);
-const safeData = chartData.map(d => d.safe);
-const fakeData = chartData.map(d => d.fake);
+// Load AI briefing
+fetch('/api/ai-briefing')
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('aiBriefing').innerHTML = data.briefing || 'Stay safe while job hunting!';
+  })
+  .catch(() => {
+    document.getElementById('aiBriefing').textContent = 'Always verify companies before applying. Never pay registration fees.';
+  });
 
+const chartData = {{ chart_data | tojson }};
 new Chart(document.getElementById('trendChart'), {
   type: 'line',
   data: {
-    labels: labels.length ? labels : ['No Data'],
+    labels: chartData.length ? chartData.map(d => d.day) : ['No Data'],
     datasets: [
-      { label: 'Safe', data: safeData, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.1)', tension: 0.4, fill: true },
-      { label: 'Fake', data: fakeData, borderColor: '#dc2626', backgroundColor: 'rgba(220,38,38,.1)', tension: 0.4, fill: true }
+      { label: 'Safe', data: chartData.map(d => d.safe), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.1)', tension: 0.4, fill: true, borderWidth: 2 },
+      { label: 'Fake', data: chartData.map(d => d.fake), borderColor: '#dc2626', backgroundColor: 'rgba(220,38,38,.08)', tension: 0.4, fill: true, borderWidth: 2 },
+      { label: 'Suspicious', data: chartData.map(d => d.suspicious||0), borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,.08)', tension: 0.4, fill: true, borderWidth: 2 }
     ]
   },
-  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
 });
-
 new Chart(document.getElementById('pieChart'), {
   type: 'doughnut',
   data: {
-    labels: ['Safe', 'Fake'],
-    datasets: [{ data: [{{ stats.safe }}, {{ stats.fake }}], backgroundColor: ['#16a34a', '#dc2626'], borderWidth: 0 }]
+    labels: ['Safe', 'Fake', 'Suspicious'],
+    datasets: [{ data: [{{ stats.safe }}, {{ stats.fake }}, {{ stats.suspicious }}], backgroundColor: ['#16a34a', '#dc2626', '#d97706'], borderWidth: 0 }]
   },
   options: { responsive: false, plugins: { legend: { display: false } }, cutout: '65%' }
 });

@@ -7,7 +7,7 @@
 <div class="page-header">
   <div>
     <div class="page-title">Analyze Any Job</div>
-    <div class="page-subtitle">Choose input type and paste job details for instant AI fraud detection</div>
+    <div class="page-subtitle">ML-powered fraud detection — paste text, URL, image, or email content</div>
   </div>
 </div>
 
@@ -16,22 +16,10 @@
     <div style="margin-bottom:20px">
       <label style="margin-bottom:10px;display:block">Choose Input Type</label>
       <div class="input-tabs">
-        <button class="tab-btn active" onclick="setTab('text',this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
-          Text
-        </button>
-        <button class="tab-btn" onclick="setTab('url',this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-          URL
-        </button>
-        <button class="tab-btn" onclick="setTab('image',this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          Image (OCR)
-        </button>
-        <button class="tab-btn" onclick="setTab('email',this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          Email
-        </button>
+        <button class="tab-btn active" onclick="setTab('text',this)">📝 Text</button>
+        <button class="tab-btn" onclick="setTab('url',this)">🔗 URL</button>
+        <button class="tab-btn" onclick="setTab('image',this)">🖼️ Image (OCR)</button>
+        <button class="tab-btn" onclick="setTab('email',this)">📧 Email</button>
       </div>
     </div>
 
@@ -40,21 +28,65 @@
       <input type="text" id="jobTitle" placeholder="e.g. Software Developer at XYZ Company">
     </div>
 
-    <div class="form-group" id="textInput">
-      <label>Paste Job Description Here</label>
-      <textarea id="contentText" placeholder="Paste the full job description, email content, or job posting here...&#10;&#10;Example: We are urgently hiring. Earn 5000 daily from home. No experience needed. Pay registration fee Rs 500 to join our WhatsApp group." style="min-height:160px"></textarea>
+    <!-- Text Tab -->
+    <div id="textInput">
+      <div class="form-group">
+        <label>Paste Job Description</label>
+        <textarea id="contentText" placeholder="Paste the full job description, recruitment message, or offer text here...&#10;&#10;Example: We are urgently hiring. Earn 5000 daily from home. No experience needed. Pay registration fee Rs 500." style="min-height:160px"></textarea>
+      </div>
     </div>
-    <div class="form-group" id="urlInput" style="display:none">
-      <label>Job Posting URL</label>
-      <input type="url" id="contentUrl" placeholder="https://example.com/job-posting">
+
+    <!-- URL Tab -->
+    <div id="urlInput" style="display:none">
+      <div class="form-group">
+        <label>Job Posting URL</label>
+        <div style="display:flex;gap:8px">
+          <input type="url" id="contentUrl" placeholder="https://example.com/job-posting" style="flex:1">
+          <button class="btn btn-secondary" onclick="fetchUrl()" id="fetchBtn" style="white-space:nowrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Fetch
+          </button>
+        </div>
+      </div>
+      <div id="urlPreview" style="display:none" class="form-group">
+        <label>Extracted Content <span id="urlWordCount" style="font-weight:400;color:#64748b"></span></label>
+        <textarea id="urlExtracted" style="min-height:120px;font-size:12px;background:#f8fafc"></textarea>
+      </div>
+      <div id="urlError" style="display:none" class="alert alert-error"></div>
     </div>
-    <div class="form-group" id="imageInput" style="display:none">
-      <label>Paste Image Text / OCR Content</label>
-      <textarea id="contentImage" placeholder="Paste the text extracted from the job posting image here..." style="min-height:160px"></textarea>
+
+    <!-- Image Tab -->
+    <div id="imageInput" style="display:none">
+      <div class="form-group">
+        <label>Upload Job Posting Image (Screenshot / Offer Letter)</label>
+        <div id="dropZone" style="border:2px dashed #e2e8f0;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .15s" onclick="document.getElementById('imageFile').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+          <div id="dropPlaceholder">
+            <div style="font-size:32px;margin-bottom:8px">🖼️</div>
+            <div style="font-weight:600;margin-bottom:4px">Click or drag image here</div>
+            <div style="font-size:12px;color:#64748b">PNG, JPG, JPEG supported</div>
+          </div>
+          <img id="imagePreview" style="display:none;max-width:100%;max-height:200px;border-radius:8px" alt="preview">
+        </div>
+        <input type="file" id="imageFile" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
+      </div>
+      <div id="ocrStatus" style="display:none" class="form-group">
+        <label>Extracted Text <small style="font-weight:400;color:#64748b">(edit if needed)</small></label>
+        <textarea id="contentImage" style="min-height:120px;font-size:12px"></textarea>
+      </div>
+      <div id="ocrFallback" style="display:none;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;font-size:13px;margin-bottom:12px">
+        ⚠️ OCR engine not available on server. Please paste the image text below manually.
+        <div class="form-group" style="margin-top:8px;margin-bottom:0">
+          <textarea id="contentImageFallback" style="min-height:100px" placeholder="Paste the text from the image here..."></textarea>
+        </div>
+      </div>
     </div>
-    <div class="form-group" id="emailInput" style="display:none">
-      <label>Paste Email Content</label>
-      <textarea id="contentEmail" placeholder="Paste the full email content including subject, sender, and body..." style="min-height:160px"></textarea>
+
+    <!-- Email Tab -->
+    <div id="emailInput" style="display:none">
+      <div class="form-group">
+        <label>Paste Email Content</label>
+        <textarea id="contentEmail" placeholder="Paste the full email content including:&#10;From: sender@domain.com&#10;Subject: Job Opportunity&#10;Body: Dear candidate, you have been selected..." style="min-height:160px"></textarea>
+      </div>
     </div>
 
     <div style="display:flex;gap:10px">
@@ -67,34 +99,49 @@
   </div>
 
   <div>
+    <div class="card card-body" style="margin-bottom:16px;background:linear-gradient(135deg,#0f172a,#1e3a5f);border:none">
+      <div style="font-size:12px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">🤖 ML Fraud Detection Engine</div>
+      <div style="font-size:13px;color:#cbd5e1;line-height:1.6">
+        Powered by <strong style="color:white">scikit-learn TF-IDF + Logistic Regression</strong> trained on thousands of real and fake job postings.<br><br>
+        <span style="background:rgba(22,163,74,.2);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">0–35 SAFE</span>
+        &nbsp;
+        <span style="background:rgba(217,119,6,.2);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">36–65 SUSPICIOUS</span>
+        &nbsp;
+        <span style="background:rgba(220,38,38,.2);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">66–100 FAKE</span>
+      </div>
+    </div>
     <div class="card card-body" style="margin-bottom:16px">
       <div class="card-title" style="margin-bottom:12px">Tips for Best Results</div>
       <ul class="tips-list">
-        <li>Provide as much detail as possible in the job description</li>
-        <li>You can paste job description, email or URL</li>
-        <li>Do not share personal information in the text</li>
-        <li>Include the company name and contact if available</li>
-        <li>For emails, include the sender's address</li>
+        <li>Provide the complete job description for best accuracy</li>
+        <li>For URLs, use the Fetch button to extract content automatically</li>
+        <li>Upload screenshot images for OCR text extraction</li>
+        <li>Include sender email address when analyzing email content</li>
+        <li>The ML model improves with your feedback after each analysis</li>
       </ul>
     </div>
     <div class="card card-body">
-      <div class="card-title" style="margin-bottom:12px">Supported Inputs</div>
+      <div class="card-title" style="margin-bottom:12px">Supported Input Types</div>
       <div class="grid-2" style="gap:10px">
-        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:8px">
-          <div style="font-size:24px;margin-bottom:4px">📝</div>
-          <div style="font-size:12px;font-weight:600">Text</div>
+        <div style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px">
+          <div style="font-size:22px;margin-bottom:4px">📝</div>
+          <div style="font-size:11px;font-weight:700">Text</div>
+          <div style="font-size:10px;color:#64748b">Paste description</div>
         </div>
-        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:8px">
-          <div style="font-size:24px;margin-bottom:4px">🔗</div>
-          <div style="font-size:12px;font-weight:600">URL</div>
+        <div style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px">
+          <div style="font-size:22px;margin-bottom:4px">🔗</div>
+          <div style="font-size:11px;font-weight:700">URL</div>
+          <div style="font-size:10px;color:#64748b">Scrape & analyze</div>
         </div>
-        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:8px">
-          <div style="font-size:24px;margin-bottom:4px">🖼️</div>
-          <div style="font-size:12px;font-weight:600">Image (OCR)</div>
+        <div style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px">
+          <div style="font-size:22px;margin-bottom:4px">🖼️</div>
+          <div style="font-size:11px;font-weight:700">Image OCR</div>
+          <div style="font-size:10px;color:#64748b">Extract + analyze</div>
         </div>
-        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:8px">
-          <div style="font-size:24px;margin-bottom:4px">📧</div>
-          <div style="font-size:12px;font-weight:600">Email</div>
+        <div style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px">
+          <div style="font-size:22px;margin-bottom:4px">📧</div>
+          <div style="font-size:11px;font-weight:700">Email</div>
+          <div style="font-size:10px;color:#64748b">Phishing detection</div>
         </div>
       </div>
     </div>
@@ -104,25 +151,25 @@
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay" style="display:none">
   <div class="loading-card">
-    <div class="spinner" style="margin:0 auto;width:40px;height:40px;border-width:3px"></div>
+    <div class="spinner" style="margin:0 auto;width:44px;height:44px;border-width:3px"></div>
     <h3>Analyzing Job Posting...</h3>
-    <p>AI Model + Rules Engine + Email + Domain checks</p>
-    <ul class="processing-steps" style="text-align:left;margin-top:16px">
+    <p style="color:#64748b;margin-bottom:16px">ML Model + Rules Engine + Fraud Detection</p>
+    <ul class="processing-steps">
       <li class="processing-step" id="step1">
-        <div class="step-icon active"><div class="spinner" style="width:16px;height:16px;border-width:2px"></div></div>
-        <span>AI Model Processing...</span>
+        <div class="step-icon active" id="s1"><div class="spinner" style="width:14px;height:14px;border-width:2px"></div></div>
+        <span>TF-IDF Feature Extraction...</span>
       </li>
       <li class="processing-step" id="step2">
-        <div class="step-icon pending" style="font-size:12px;color:#94a3b8">○</div>
-        <span>Rules Engine Check</span>
+        <div class="step-icon pending" id="s2" style="font-size:11px;color:#94a3b8">○</div>
+        <span>ML Model Prediction</span>
       </li>
       <li class="processing-step" id="step3">
-        <div class="step-icon pending" style="font-size:12px;color:#94a3b8">○</div>
-        <span>Email Phishing Detection</span>
+        <div class="step-icon pending" id="s3" style="font-size:11px;color:#94a3b8">○</div>
+        <span>Rules Engine Validation</span>
       </li>
       <li class="processing-step" id="step4">
-        <div class="step-icon pending" style="font-size:12px;color:#94a3b8">○</div>
-        <span>Domain Verification</span>
+        <div class="step-icon pending" id="s4" style="font-size:11px;color:#94a3b8">○</div>
+        <span>Generating Fraud Score</span>
       </li>
     </ul>
   </div>
@@ -132,51 +179,135 @@
 {% block scripts %}
 <script>
 let currentTab = 'text';
+let imageB64 = null;
 
 function setTab(tab, btn) {
   currentTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['textInput','urlInput','imageInput','emailInput'].forEach(id => {
-    document.getElementById(id).style.display = 'none';
-  });
-  document.getElementById(tab+'Input').style.display = 'block';
+  ['textInput','urlInput','imageInput','emailInput'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById(tab + 'Input').style.display = 'block';
 }
 
 function getContent() {
-  const map = { text: 'contentText', url: 'contentUrl', image: 'contentImage', email: 'contentEmail' };
-  return document.getElementById(map[currentTab]).value.trim();
+  if (currentTab === 'text') return document.getElementById('contentText').value.trim();
+  if (currentTab === 'url') {
+    const extracted = document.getElementById('urlExtracted').value.trim();
+    return extracted || document.getElementById('contentUrl').value.trim();
+  }
+  if (currentTab === 'image') {
+    const extracted = document.getElementById('contentImage').value.trim();
+    const fallback = document.getElementById('contentImageFallback').value.trim();
+    return extracted || fallback;
+  }
+  if (currentTab === 'email') return document.getElementById('contentEmail').value.trim();
+  return '';
 }
 
 function clearForm() {
-  ['contentText','contentUrl','contentImage','contentEmail'].forEach(id => {
+  ['contentText','contentEmail','contentUrl','urlExtracted','contentImage','contentImageFallback'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
   document.getElementById('jobTitle').value = '';
+  document.getElementById('urlPreview').style.display = 'none';
+  document.getElementById('urlError').style.display = 'none';
+  document.getElementById('imagePreview').style.display = 'none';
+  document.getElementById('dropPlaceholder').style.display = 'block';
+  imageB64 = null;
+}
+
+async function fetchUrl() {
+  const url = document.getElementById('contentUrl').value.trim();
+  if (!url) { alert('Please enter a URL.'); return; }
+  const btn = document.getElementById('fetchBtn');
+  btn.disabled = true; btn.textContent = 'Fetching...';
+  document.getElementById('urlError').style.display = 'none';
+  document.getElementById('urlPreview').style.display = 'none';
+
+  try {
+    const res = await fetch('/api/scrape-url', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('urlExtracted').value = data.text;
+      document.getElementById('urlWordCount').textContent = `(${data.word_count} words extracted from: ${data.title || url})`;
+      document.getElementById('urlPreview').style.display = 'block';
+    } else {
+      document.getElementById('urlError').textContent = '⚠️ ' + (data.error || 'Could not fetch URL content.');
+      document.getElementById('urlError').style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById('urlError').textContent = '⚠️ Network error. Please try again.';
+    document.getElementById('urlError').style.display = 'block';
+  }
+  btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Fetch';
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor = '#2563eb';
+  document.getElementById('dropZone').style.background = '#eff6ff';
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor = '#e2e8f0';
+  document.getElementById('dropZone').style.background = '';
+  const file = e.dataTransfer.files[0];
+  if (file) processImage(file);
+}
+function handleImageSelect(input) {
+  if (input.files[0]) processImage(input.files[0]);
+}
+
+function processImage(file) {
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    imageB64 = e.target.result;
+    document.getElementById('imagePreview').src = imageB64;
+    document.getElementById('imagePreview').style.display = 'block';
+    document.getElementById('dropPlaceholder').style.display = 'none';
+
+    // Try OCR
+    try {
+      const res = await fetch('/api/ocr', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({image: imageB64})
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('contentImage').value = data.text;
+        document.getElementById('ocrStatus').style.display = 'block';
+        document.getElementById('ocrFallback').style.display = 'none';
+      } else if (data.fallback) {
+        document.getElementById('ocrFallback').style.display = 'block';
+        document.getElementById('ocrStatus').style.display = 'none';
+      } else {
+        document.getElementById('ocrFallback').style.display = 'block';
+      }
+    } catch(e) {
+      document.getElementById('ocrFallback').style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
 }
 
 async function analyzeJob() {
   const content = getContent();
-  if (!content) { alert('Please enter job content to analyze.'); return; }
-
+  if (!content) { alert('Please enter or fetch job content to analyze.'); return; }
   const overlay = document.getElementById('loadingOverlay');
   overlay.style.display = 'flex';
   simulateSteps();
-
   try {
     const res = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        input_type: currentTab,
-        content: content,
-        job_title: document.getElementById('jobTitle').value
-      })
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ input_type: currentTab, content, job_title: document.getElementById('jobTitle').value })
     });
     const data = await res.json();
     if (data.id) {
-      setTimeout(() => { window.location = '/result/' + data.id; }, 1500);
+      setTimeout(() => window.location = '/result/' + data.id, 1800);
     } else {
       overlay.style.display = 'none';
       alert(data.error || 'Analysis failed. Please try again.');
@@ -188,19 +319,18 @@ async function analyzeJob() {
 }
 
 function simulateSteps() {
-  const steps = ['step1','step2','step3','step4'];
-  steps.forEach((id,i) => {
+  const steps = ['s1','s2','s3','s4'];
+  steps.forEach((id, i) => {
     setTimeout(() => {
       if (i > 0) {
         const prev = document.getElementById(steps[i-1]);
-        prev.querySelector('.step-icon').innerHTML = '✓';
-        prev.querySelector('.step-icon').style.background = '#f0fdf4';
-        prev.querySelector('.step-icon').style.color = '#16a34a';
+        prev.innerHTML = '✓';
+        prev.style.cssText = 'width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#f0fdf4;color:#16a34a;font-size:13px;font-weight:700;flex-shrink:0';
       }
       const curr = document.getElementById(id);
-      curr.querySelector('.step-icon').innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px"></div>';
-      curr.querySelector('.step-icon').style.background = '#eff6ff';
-    }, i * 600);
+      curr.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px"></div>';
+      curr.style.background = '#eff6ff';
+    }, i * 500);
   });
 }
 </script>

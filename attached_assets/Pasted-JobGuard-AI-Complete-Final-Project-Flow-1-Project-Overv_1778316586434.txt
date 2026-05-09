@@ -1,0 +1,347 @@
+JobGuard AI — Complete Final Project Flow
+1. Project Overview
+JobGuard AI is an AI-powered web platform that helps users identify fake, fraudulent, or suspicious job opportunities before applying.
+The system combines:
+Machine Learning fraud detection
+OCR image analysis
+URL scraping
+AI conversational insights
+Job portal management
+Admin moderation system
+to create a complete employment safety ecosystem.
+2. Overall System Architecture
+Plain text
+USERS / ADMINS
+                        ↓
+          Frontend (HTML/CSS/JS)
+                        ↓
+                Flask Backend
+                        ↓
+ ┌────────────────────────────────────┐
+ │           CORE SERVICES            │
+ ├────────────────────────────────────┤
+ │ Authentication Service             │
+ │ Fraud Detection Service            │
+ │ AI Insights Service                │
+ │ OCR Processing Service             │
+ │ URL Scraping Service               │
+ │ Job Portal Service                 │
+ │ History Tracking Service           │
+ │ Cybercrime Report Service          │
+ │ Admin Management Service           │
+ └────────────────────────────────────┘
+                        ↓
+ ┌────────────────────────────────────┐
+ │             AI/ML LAYER            │
+ ├────────────────────────────────────┤
+ │ scikit-learn Fraud Detection Model │
+ │ Ollama Local LLM                   │
+ │ Scam Keyword Detection Engine      │
+ └────────────────────────────────────┘
+                        ↓
+                 SQLite Database
+3. User Flow
+Step 1 — Registration & Login
+Users create accounts and securely log in.
+Features
+Register
+Login
+Logout
+Session handling
+Role-based authentication
+Demo fill login button
+Flow
+Plain text
+User → Register/Login → Dashboard
+Step 2 — Dashboard
+After login, users enter the personalized dashboard.
+Dashboard Displays
+Total analyses
+Fake jobs detected
+Recent scans
+Application count
+AI-generated safety briefing
+Fraud trend charts
+AI Dashboard Briefing
+Generated using:
+User history
+Risk behavior patterns
+Recent analyses
+Powered by: Ollama
+Step 3 — Analyze a Job (Core Module)
+Main feature of the system.
+Users can analyze jobs using multiple input methods.
+A. Text Analysis
+User pastes:
+Job description
+Recruitment message
+Offer text
+B. URL Analysis
+User pastes job listing URL.
+System:
+Scrapes webpage
+Extracts text
+Sends to ML engine
+Uses: Beautiful Soup
+C. Email Analysis
+Users paste suspicious recruiter emails.
+System checks:
+Scam phrases
+Urgency patterns
+Unrealistic salary claims
+Suspicious domains
+D. Image OCR Analysis
+Users upload:
+Screenshots
+Offer letters
+WhatsApp chats
+System:
+Extracts text using OCR
+Sends extracted content to ML model
+Uses: Tesseract OCR
+4. Fraud Detection Engine
+Core AI/ML system.
+ML Workflow
+Plain text
+Input Data
+     ↓
+Text Cleaning
+     ↓
+Feature Extraction
+     ↓
+TF-IDF Vectorization
+     ↓
+ML Prediction
+     ↓
+Fraud Score Generation
+     ↓
+Verdict Classification
+Technologies
+scikit-learn
+Logistic Regression / Naive Bayes
+TF-IDF Vectorizer
+5. Fraud Score & Verdict System
+The system generates:
+Fraud score (0–100)
+Confidence level
+Final verdict
+Verdict Categories
+Score
+Verdict
+0–35
+Safe
+36–65
+Suspicious
+66–100
+Fake
+6. Result Page
+After analysis, users receive a detailed result page.
+Result Displays
+Fraud score
+Confidence percentage
+Scam keywords detected
+Risk indicators
+AI explanation
+Safety recommendation
+Available Actions
+Save analysis
+Report cybercrime
+Continue AI chat
+Apply to verified jobs
+7. AI Insights Assistant
+Conversational AI assistant integrated into the platform.
+Powered by: Ollama
+AI Assistant Capabilities
+Explain Fraud Results
+Example:
+Plain text
+"This job was flagged because it requests registration fees and uses urgency language."
+Personalized Safety Advice
+Uses:
+User history
+Previous scans
+Scam patterns
+Example:
+Plain text
+"You frequently interact with remote jobs promising unrealistic salaries."
+Conversational Q&A
+Users can ask:
+“Can I trust Telegram jobs?”
+“What are common scam indicators?”
+“Why was this marked fake?”
+AI Flow
+Plain text
+User Question
+      ↓
+Context Builder
+      ↓
+Ollama Prompt Generation
+      ↓
+LLM Response
+      ↓
+Chat UI Display
+8. Job Portal
+AI-screened job marketplace.
+Features
+Search jobs
+Filter jobs
+Apply directly
+View risk labels
+AI-generated trust indicators
+Workflow
+Plain text
+Admin Adds Job
+      ↓
+AI Fraud Screening
+      ↓
+Job Published
+      ↓
+User Applies
+9. My Applications
+Tracks all jobs applied by the user.
+Displays
+Job title
+Company
+Status
+Date applied
+Application Status Examples
+Applied
+Under Review
+Shortlisted
+Rejected
+10. History Module
+Stores all previous analyses.
+Stored Information
+Input type
+Fraud score
+Verdict
+Date/time
+AI explanation
+Purpose
+User tracking
+AI personalization
+Dashboard analytics
+11. Cybercrime Reporting System
+Users can report:
+Scam recruiters
+Fraud websites
+Fake companies
+Report Includes
+Description
+Screenshot upload
+Scam evidence
+Contact details used by scammers
+Workflow
+Plain text
+User Report
+     ↓
+Stored in Database
+     ↓
+Admin Review
+     ↓
+Moderation Action
+12. Profile Module
+Users can:
+Update profile
+Change password
+Manage account
+Sign out
+13. Admin Panel
+Separate secure admin system.
+Admin Authentication
+Plain text
+Admin Login
+      ↓
+Admin Dashboard
+14. Admin Dashboard
+Central monitoring system.
+Dashboard Displays
+Total users
+Total analyses
+Fake jobs detected
+Recent reports
+Platform statistics
+Fraud trends
+15. User Management
+Admin can:
+View users
+Suspend accounts
+Delete users
+16. Job Portal Management
+Admin controls the job marketplace.
+Admin Actions
+Add jobs
+Edit jobs
+Remove jobs
+Hide suspicious listings
+Update application statuses
+17. Report Moderation
+Admin reviews:
+Cybercrime reports
+User feedback
+Scam submissions
+Admin Actions
+Approve report
+Reject spam
+Mark resolved
+Investigate suspicious activity
+18. Platform Analytics
+Admin can monitor:
+Scam trends
+Most flagged keywords
+Fraud categories
+User activity patterns
+19. Database Architecture
+Main database tables:
+Plain text
+users
+analyses
+jobs
+applications
+reports
+feedback
+admin_logs
+Uses: SQLite
+20. Technology Stack
+Layer
+Technology
+Backend
+Flask
+Frontend
+HTML/CSS/JavaScript
+Database
+SQLite
+Machine Learning
+scikit-learn
+OCR
+Tesseract OCR
+Scraping
+Beautiful Soup
+AI Assistant
+Ollama
+21. Key Innovation of the Project
+The system uses a hybrid AI architecture:
+Machine Learning Model
+Handles:
+Fraud prediction
+Risk scoring
+Classification
+Ollama LLM
+Handles:
+AI explanations
+Personalized guidance
+Conversational assistance
+Why This Architecture Is Strong
+Plain text
+ML = Accurate detection
+LLM = Human-like interaction
+Together they create a complete intelligent fraud prevention platform.
+22. Final Summary
+JobGuard AI is a complete AI-powered employment fraud prevention ecosystem that combines:
+Machine Learning
+OCR
+URL scraping
+Conversational AI
+Analytics
+Admin moderation
+to help users safely search and apply for jobs while protecting them from online recruitment scams.

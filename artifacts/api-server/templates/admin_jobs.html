@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% block title %}Job Management{% endblock %}
+{% block page_title %}Job Management{% endblock %}
+{% set active = 'admin_jobs' %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Job Management</div>
+    <div class="page-subtitle">Add, edit, and remove jobs from the portal with AI auto-scoring</div>
+  </div>
+  <button class="btn btn-primary" onclick="openAddModal()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add New Job
+  </button>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+  <div class="stat-card">
+    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+    <div class="stat-label">Total Jobs</div>
+    <div class="stat-value blue">{{ jobs|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+    <div class="stat-label">Verified</div>
+    <div class="stat-value green">{{ jobs|selectattr('verification_status','equalto','verified')|list|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="stat-label">Suspicious</div>
+    <div class="stat-value orange">{{ jobs|selectattr('verification_status','equalto','suspicious')|list|length }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header" style="padding-bottom:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid #f1f5f9">
+      <div class="card-title">All Jobs ({{ jobs|length }})</div>
+      <input type="text" id="jobSearch" placeholder="Search jobs..." style="width:220px;padding:7px 12px;font-size:13px" oninput="filterJobs(this.value)">
+    </div>
+  </div>
+  <div class="table-wrap">
+    {% if jobs %}
+    <table id="jobTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Company</th>
+          <th>Location</th>
+          <th>AI Score</th>
+          <th>Status</th>
+          <th>Salary</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for j in jobs %}
+      <tr class="job-row" id="job-row-{{ j.id }}">
+        <td style="color:#94a3b8;font-weight:600">{{ loop.index }}</td>
+        <td>
+          <div style="font-weight:700;font-size:13px">{{ j.title }}</div>
+          <div style="font-size:11px;color:#94a3b8">{{ j.job_type }}</div>
+        </td>
+        <td style="font-size:13px;color:#374151">{{ j.company }}</td>
+        <td style="font-size:12px;color:#64748b">{{ j.location }}</td>
+        <td>
+          <div style="font-weight:700;color:{% if j.ai_score>=70 %}#16a34a{% elif j.ai_score>=40 %}#d97706{% else %}#dc2626{% endif %}">{{ j.ai_score }}%</div>
+          <div class="risk-bar" style="width:60px;margin-top:3px">
+            <div class="risk-bar-fill {% if j.ai_score>=70 %}safe{% elif j.ai_score>=40 %}suspicious{% else %}fake{% endif %}" style="width:{{ j.ai_score }}%"></div>
+          </div>
+        </td>
+        <td>
+          <span class="badge {% if j.verification_status=='verified' %}safe{% elif j.verification_status=='suspicious' %}suspicious{% else %}gray{% endif %}">
+            {{ j.verification_status.upper() }}
+          </span>
+        </td>
+        <td style="font-size:12px;color:#64748b">{{ j.salary or '—' }}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-secondary" onclick="openEditModal({{ j | tojson | e }})">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteJob({{ j.id }}, this)">Delete</button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state"><p>No jobs yet. <button class="btn btn-primary btn-sm" onclick="openAddModal()">Add first job</button></p></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="jobModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);z-index:999;display:none;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:16px;padding:28px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 40px rgba(0,0,0,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:17px;font-weight:800" id="modalTitle">Add New Job</div>
+      <button onclick="closeModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;line-height:1">×</button>
+    </div>
+    <input type="hidden" id="editJobId">
+
+    <div class="grid-2" style="gap:14px">
+      <div class="form-group">
+        <label>Job Title *</label>
+        <input type="text" id="mTitle" placeholder="e.g. Frontend Developer">
+      </div>
+      <div class="form-group">
+        <label>Company *</label>
+        <input type="text" id="mCompany" placeholder="e.g. Infosys">
+      </div>
+    </div>
+    <div class="grid-2" style="gap:14px">
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" id="mLocation" placeholder="e.g. Bangalore">
+      </div>
+      <div class="form-group">
+        <label>Job Type</label>
+        <select id="mJobType">
+          <option>Full-Time</option>
+          <option>Part-Time</option>
+          <option>Contract</option>
+          <option>Internship</option>
+          <option>Remote</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-2" style="gap:14px">
+      <div class="form-group">
+        <label>Salary</label>
+        <input type="text" id="mSalary" placeholder="e.g. ₹8-12 LPA">
+      </div>
+      <div class="form-group">
+        <label>Verification Status</label>
+        <select id="mStatus">
+          <option value="verified">Verified</option>
+          <option value="suspicious">Suspicious</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>AI Trust Score (0–100)</label>
+      <input type="number" id="mScore" min="0" max="100" placeholder="Auto-calculated from description if blank">
+    </div>
+    <div class="form-group">
+      <label>Job Description *</label>
+      <textarea id="mDesc" placeholder="Full job description..." style="min-height:100px"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Why Legitimate (shown for verified jobs)</label>
+      <textarea id="mWhy" placeholder="e.g. Company domain verified. Standard hiring process. No advance fee." style="min-height:70px"></textarea>
+    </div>
+
+    <div id="modalError" style="display:none" class="alert alert-error"></div>
+
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveJob()" id="saveBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/></svg>
+        Save Job
+      </button>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:#0f172a;color:white;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;display:none;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.3)"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterJobs(query) {
+  document.querySelectorAll('.job-row').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(query.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function showToast(msg, color='#16a34a') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function openAddModal() {
+  document.getElementById('editJobId').value = '';
+  document.getElementById('modalTitle').textContent = 'Add New Job';
+  ['mTitle','mCompany','mLocation','mSalary','mScore','mDesc','mWhy'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mJobType').value = 'Full-Time';
+  document.getElementById('mStatus').value = 'verified';
+  document.getElementById('modalError').style.display = 'none';
+  document.getElementById('jobModal').style.display = 'flex';
+}
+
+function openEditModal(job) {
+  document.getElementById('editJobId').value = job.id;
+  document.getElementById('modalTitle').textContent = 'Edit Job';
+  document.getElementById('mTitle').value = job.title || '';
+  document.getElementById('mCompany').value = job.company || '';
+  document.getElementById('mLocation').value = job.location || '';
+  document.getElementById('mJobType').value = job.job_type || 'Full-Time';
+  document.getElementById('mSalary').value = job.salary || '';
+  document.getElementById('mScore').value = job.ai_score || '';
+  document.getElementById('mStatus').value = job.verification_status || 'verified';
+  document.getElementById('mDesc').value = job.description || '';
+  document.getElementById('mWhy').value = job.why_legitimate || '';
+  document.getElementById('modalError').style.display = 'none';
+  document.getElementById('jobModal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('jobModal').style.display = 'none';
+}
+
+async function saveJob() {
+  const jobId = document.getElementById('editJobId').value;
+  const title = document.getElementById('mTitle').value.trim();
+  const company = document.getElementById('mCompany').value.trim();
+  if (!title || !company) {
+    document.getElementById('modalError').textContent = 'Title and Company are required.';
+    document.getElementById('modalError').style.display = 'block';
+    return;
+  }
+  const payload = {
+    title, company,
+    location: document.getElementById('mLocation').value,
+    job_type: document.getElementById('mJobType').value,
+    salary: document.getElementById('mSalary').value,
+    ai_score: parseInt(document.getElementById('mScore').value) || null,
+    verification_status: document.getElementById('mStatus').value,
+    description: document.getElementById('mDesc').value,
+    why_legitimate: document.getElementById('mWhy').value
+  };
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  try {
+    const url = jobId ? `/api/admin/jobs/${jobId}` : '/api/admin/jobs';
+    const method = jobId ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method, headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(data.message || 'Job saved!');
+      closeModal();
+      setTimeout(() => location.reload(), 800);
+    } else {
+      document.getElementById('modalError').textContent = data.error || 'Save failed.';
+      document.getElementById('modalError').style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById('modalError').textContent = 'Network error.';
+    document.getElementById('modalError').style.display = 'block';
+  }
+  btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/></svg> Save Job';
+}
+
+async function deleteJob(jobId, btn) {
+  if (!confirm('Delete this job? This will also remove all applications for it.')) return;
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/api/admin/jobs/${jobId}`, { method: 'DELETE' });
+    const data = await res.json();
+    showToast(data.message || 'Job deleted');
+    document.getElementById('job-row-' + jobId).style.display = 'none';
+  } catch(e) {
+    showToast('Delete failed', '#dc2626');
+    btn.disabled = false;
+  }
+}
+
+// Close modal on backdrop click
+document.getElementById('jobModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}
