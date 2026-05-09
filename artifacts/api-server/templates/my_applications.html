@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}My Applications{% endblock %}
+{% block page_title %}My Applications{% endblock %}
+{% set active = 'applications' %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">My Applications</div>
+    <div class="page-subtitle">Track all applied and saved jobs</div>
+  </div>
+  <a href="/jobs" class="btn btn-primary">Browse Jobs</a>
+</div>
+
+<!-- Applied Jobs -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><div class="card-title">Applied Jobs ({{ applications|length }})</div></div>
+  <div class="table-wrap">
+    {% if applications %}
+    <table>
+      <thead><tr><th>Job Title</th><th>Company</th><th>AI Score</th><th>Status</th><th>Applied On</th><th>Action</th></tr></thead>
+      <tbody>
+      {% for app in applications %}
+      <tr>
+        <td style="font-weight:700;font-size:13px">{{ app.job_title }}</td>
+        <td style="color:#64748b">{{ app.company }}</td>
+        <td>
+          <span class="ai-score {% if app.ai_score >= 70 %}high{% elif app.ai_score >= 40 %}mid{% else %}low{% endif %}">
+            {{ app.ai_score }}%
+          </span>
+        </td>
+        <td>
+          <span class="badge {{ app.status }}">
+            {% if app.status == 'under_review' %}Under Review
+            {% elif app.status == 'shortlisted' %}Shortlisted
+            {% elif app.status == 'rejected' %}Rejected
+            {% elif app.status == 'accepted' %}Accepted
+            {% else %}{{ app.status }}{% endif %}
+          </span>
+        </td>
+        <td style="color:#64748b;font-size:12px">{{ app.applied_at[:10] }}</td>
+        <td><a href="/jobs/{{ app.job_id }}" class="btn btn-sm btn-secondary">View Job</a></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+      <p>No applications yet. <a href="/jobs" style="color:#2563eb">Browse jobs to apply!</a></p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Saved Jobs -->
+<div class="card">
+  <div class="card-header"><div class="card-title">Saved Jobs ({{ saved_jobs|length }})</div></div>
+  <div class="table-wrap">
+    {% if saved_jobs %}
+    <table>
+      <thead><tr><th>Job Title</th><th>Company</th><th>Location</th><th>Verification</th><th>Saved On</th><th>Action</th></tr></thead>
+      <tbody>
+      {% for job in saved_jobs %}
+      <tr>
+        <td style="font-weight:700;font-size:13px">{{ job.title }}</td>
+        <td style="color:#64748b">{{ job.company }}</td>
+        <td style="color:#64748b">{{ job.location }}</td>
+        <td>
+          <span class="badge {% if job.verification_status=='verified' %}safe{% elif job.verification_status=='suspicious' %}suspicious{% else %}gray{% endif %}">
+            {% if job.verification_status=='verified' %}✓ Verified{% elif job.verification_status=='suspicious' %}⚠ Suspicious{% else %}Unknown{% endif %}
+          </span>
+        </td>
+        <td style="color:#64748b;font-size:12px">{{ job.saved_at[:10] }}</td>
+        <td><a href="/jobs/{{ job.id }}" class="btn btn-sm btn-primary">Apply Now</a></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+      <p>No saved jobs. Browse jobs and save ones you like!</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

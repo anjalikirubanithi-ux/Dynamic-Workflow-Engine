@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Job Portal{% endblock %}
+{% block page_title %}Job Portal{% endblock %}
+{% set active = 'jobs' %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Job Portal</div>
+    <div class="page-subtitle">Browse jobs with AI verification — know before you apply</div>
+  </div>
+</div>
+
+<form class="search-bar" method="GET" action="/jobs">
+  <div class="search-input-wrap">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" name="search" placeholder="Search by title, company or location..." value="{{ search }}">
+  </div>
+  <select name="status" onchange="this.form.submit()" style="width:auto;padding:10px 16px">
+    <option value="all" {% if status_filter=='all' %}selected{% endif %}>All Jobs</option>
+    <option value="verified" {% if status_filter=='verified' %}selected{% endif %}>Verified Only</option>
+    <option value="suspicious" {% if status_filter=='suspicious' %}selected{% endif %}>Suspicious</option>
+  </select>
+  <button type="submit" class="btn btn-primary">Filter</button>
+</form>
+
+{% if jobs %}
+{% for job in jobs %}
+<div class="job-card" onclick="window.location='/jobs/{{ job.id }}'">
+  <div class="job-avatar">{{ job.company[0] }}</div>
+  <div class="job-info">
+    <div class="job-title">{{ job.title }}</div>
+    <div class="job-meta">{{ job.company }} &nbsp;·&nbsp; {{ job.location }} &nbsp;·&nbsp; Posted {{ job.posted_days_ago }} days ago</div>
+    <div class="job-footer">
+      <span class="badge {% if job.verification_status=='verified' %}safe{% elif job.verification_status=='suspicious' %}suspicious{% else %}gray{% endif %}">
+        {% if job.verification_status=='verified' %}✓ VERIFIED{% elif job.verification_status=='suspicious' %}⚠ SUSPICIOUS{% else %}? UNKNOWN{% endif %}
+      </span>
+      <span class="ai-score {% if job.ai_score >= 70 %}high{% elif job.ai_score >= 40 %}mid{% else %}low{% endif %}">
+        AI Score: {{ job.ai_score }}%
+      </span>
+      {% if job.salary %}<span style="font-size:12px;color:#64748b">💰 {{ job.salary }}</span>{% endif %}
+      <span style="font-size:12px;color:#94a3b8">{{ job.job_type }}</span>
+    </div>
+  </div>
+  <div class="job-actions" onclick="event.stopPropagation()">
+    <a href="/jobs/{{ job.id }}" class="btn btn-primary btn-sm">View Job</a>
+    <button class="btn btn-secondary btn-sm" onclick="saveJob({{ job.id }}, this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+      Save
+    </button>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state" style="margin-top:40px">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+  <p>No jobs found{% if search %} for "{{ search }}"{% endif %}. Try a different search.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveJob(jobId, btn) {
+  try {
+    const res = await fetch('/api/jobs/' + jobId + '/save', { method: 'POST' });
+    const data = await res.json();
+    btn.innerHTML = data.saved
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Saved'
+      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Save';
+    btn.style.color = data.saved ? '#16a34a' : '';
+  } catch(e) {}
+}
+</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Report Cybercrime{% endblock %}
+{% block page_title %}Report Cybercrime{% endblock %}
+{% set active = 'report' %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Report a Fake Job</div>
+    <div class="page-subtitle">Help us stop cyber fraud by reporting fake jobs to the authorities</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card card-body">
+    <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:12px;padding:16px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start">
+      <div style="font-size:24px;flex-shrink:0">🚨</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#dc2626;margin-bottom:4px">Report Fake Job to Cybercrime Portal</div>
+        <div style="font-size:13px;color:#374151">Help us stop job fraud by reporting this job to the authorities.</div>
+        <a href="https://cybercrime.gov.in" target="_blank" class="btn btn-danger btn-sm" style="margin-top:10px">
+          Open Cyber Crime Portal ↗
+        </a>
+      </div>
+    </div>
+
+    <div id="reportForm">
+      <div class="form-group">
+        <label>Job Title / Company Name</label>
+        <input type="text" id="repTitle" placeholder="e.g. Work From Home - Earn 5000 Daily, XYZ Company">
+      </div>
+      <div class="form-group">
+        <label>Description of Fraud</label>
+        <textarea id="repDesc" placeholder="Describe how this job is fraudulent. Include any suspicious activities, fee demands, or false promises..." style="min-height:140px"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Analysis ID (Optional)</label>
+        <input type="number" id="repAnalysisId" placeholder="Link to an existing analysis (optional)">
+      </div>
+      <button class="btn btn-danger btn-full btn-lg" onclick="submitReport()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Submit Report to Authorities
+      </button>
+    </div>
+
+    <div id="reportSuccess" style="display:none;text-align:center;padding:20px">
+      <div style="font-size:48px;margin-bottom:12px">✅</div>
+      <div style="font-size:18px;font-weight:800;color:#16a34a;margin-bottom:8px">Job Reported Successfully!</div>
+      <p style="font-size:14px;color:#64748b">If fake, user can report it to the official cybercrime portal.</p>
+      <a href="https://cybercrime.gov.in" target="_blank" class="btn btn-primary" style="margin-top:12px">Open Cyber Crime Portal ↗</a>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card card-body">
+      <div class="card-title" style="margin-bottom:12px">What to Report?</div>
+      <ul class="tips-list">
+        <li>Jobs demanding registration or training fees</li>
+        <li>Promises of unrealistic salaries (₹5000/day etc.)</li>
+        <li>WhatsApp/Telegram-based hiring processes</li>
+        <li>Jobs from suspicious or unknown companies</li>
+        <li>Phishing emails pretending to be real companies</li>
+        <li>Fake job portals collecting personal data</li>
+      </ul>
+    </div>
+    <div class="card card-body" style="background:#f0fdf4;border-color:#bbf7d0">
+      <div class="card-title" style="margin-bottom:8px;color:#16a34a">Official Cybercrime Portal</div>
+      <p style="font-size:13px;color:#374151;margin-bottom:12px">Report cybercrime directly to Indian authorities at the official portal.</p>
+      <a href="https://cybercrime.gov.in" target="_blank" class="btn btn-success btn-full">
+        cybercrime.gov.in ↗
+      </a>
+    </div>
+    <div class="card card-body">
+      <div class="card-title" style="margin-bottom:8px">Your Recent Reports</div>
+      <a href="/history" class="btn btn-secondary btn-full">View Analysis History</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function submitReport() {
+  const title = document.getElementById('repTitle').value.trim();
+  const desc = document.getElementById('repDesc').value.trim();
+  if (!title || !desc) { alert('Please fill in the job title and description.'); return; }
+  try {
+    const res = await fetch('/api/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        job_title: title,
+        description: desc,
+        analysis_id: document.getElementById('repAnalysisId').value || null
+      })
+    });
+    if (res.ok) {
+      document.getElementById('reportForm').style.display = 'none';
+      document.getElementById('reportSuccess').style.display = 'block';
+    }
+  } catch(e) { alert('Submission failed. Please try again.'); }
+}
+</script>
+{% endblock %}

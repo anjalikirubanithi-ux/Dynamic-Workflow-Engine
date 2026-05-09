@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block page_title %}Job Detail & AI Verification{% endblock %}
+{% set active = 'jobs' %}
+
+{% block content %}
+<div style="margin-bottom:16px">
+  <a href="/jobs" class="btn btn-secondary btn-sm">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Jobs
+  </a>
+</div>
+
+<div class="grid-2">
+  <!-- Job Details -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card card-body">
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+        <div class="job-avatar" style="width:56px;height:56px;font-size:22px;border-radius:14px">{{ job.company[0] }}</div>
+        <div style="flex:1">
+          <h2 style="font-size:18px;font-weight:800;color:#0f172a">{{ job.title }}</h2>
+          <div style="font-size:14px;color:#64748b;margin-top:4px">
+            {{ job.company }} &nbsp;·&nbsp; {{ job.location }} &nbsp;·&nbsp; Posted {{ job.posted_days_ago }} days ago
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <span class="badge {% if job.verification_status=='verified' %}safe{% elif job.verification_status=='suspicious' %}suspicious{% else %}gray{% endif %}">
+              {% if job.verification_status=='verified' %}✓ VERIFIED RESULT{% elif job.verification_status=='suspicious' %}⚠ SUSPICIOUS{% else %}? UNVERIFIED{% endif %}
+            </span>
+            {% if job.salary %}<span class="badge blue">💰 {{ job.salary }}</span>{% endif %}
+            <span class="badge gray">{{ job.job_type }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Job Description</div>
+        <p style="font-size:14px;color:#374151;line-height:1.7">{{ job.description }}</p>
+      </div>
+      {% if job.why_legitimate %}
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;margin-top:8px">
+        <div style="font-size:12px;font-weight:700;color:#16a34a;margin-bottom:6px">Why this job appears legitimate:</div>
+        <p style="font-size:13px;color:#374151">{{ job.why_legitimate }}</p>
+      </div>
+      {% else %}
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;margin-top:8px">
+        <div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:6px">⚠ Warning:</div>
+        <p style="font-size:13px;color:#374151">This job shows suspicious characteristics. Proceed with caution and verify before applying.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- AI Verification Box -->
+    <div class="card card-body" style="text-align:center">
+      <div style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">AI Verification Score</div>
+      <div style="font-size:52px;font-weight:800;color:{% if job.ai_score>=70 %}#16a34a{% elif job.ai_score>=40 %}#d97706{% else %}#dc2626{% endif %}">
+        {{ job.ai_score }}%
+      </div>
+      <div class="risk-bar" style="margin:12px auto;max-width:200px">
+        <div class="risk-bar-fill {% if job.ai_score>=70 %}safe{% elif job.ai_score>=40 %}suspicious{% else %}fake{% endif %}" style="width:{{ job.ai_score }}%"></div>
+      </div>
+      <span class="badge {% if job.verification_status=='verified' %}safe{% elif job.verification_status=='suspicious' %}suspicious{% else %}gray{% endif %}" style="font-size:13px;padding:6px 16px">
+        {% if job.verification_status=='verified' %}✓ VERIFIED JOB{% elif job.verification_status=='suspicious' %}⚠ SUSPICIOUS{% else %}UNKNOWN{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <!-- Apply Section -->
+  <div>
+    {% if job.verification_status == 'suspicious' %}
+    <div style="background:#fffbeb;border:2px solid #fde68a;border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:#d97706;margin-bottom:4px">⚠ Suspicious Job Alert</div>
+      <p style="font-size:13px;color:#374151">This job shows suspicious indicators. Be cautious before applying. Never pay any fees.</p>
+    </div>
+    {% endif %}
+
+    <div class="card card-body" id="applyForm">
+      <div class="card-title" style="margin-bottom:4px">Apply for {{ job.title }}</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:16px">{{ job.company }}</div>
+
+      {% if already_applied %}
+      <div class="alert alert-success" style="margin-bottom:0">✓ You have already applied for this job.</div>
+      {% else %}
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="applyName" value="{{ session.get('full_name','') }}" placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="applyEmail" value="{{ session.get('email','') }}" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="tel" id="applyPhone" placeholder="9876543210">
+      </div>
+      <div class="form-group">
+        <label>Resume (PDF)</label>
+        <input type="text" id="applyResume" placeholder="resume.pdf (filename)">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-full" onclick="submitApplication({{ job.id }})" id="applyBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Submit Application
+        </button>
+        <button class="btn btn-secondary" onclick="toggleSave({{ job.id }}, this)" id="saveBtn" style="{% if is_saved %}color:#16a34a{% endif %}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="{% if is_saved %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card card-body" style="margin-top:16px;display:none" id="successCard">
+      <div class="success-icon" style="width:60px;height:60px;margin:0 auto 12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:16px;font-weight:800;margin-bottom:4px">Application Submitted!</div>
+        <p style="font-size:13px;color:#64748b">Your application has been submitted successfully. The company will contact you soon.</p>
+        <a href="/my-applications" class="btn btn-primary" style="margin-top:12px">Go to My Applications</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function submitApplication(jobId) {
+  const name = document.getElementById('applyName').value;
+  const email = document.getElementById('applyEmail').value;
+  const phone = document.getElementById('applyPhone').value;
+  if (!name || !email || !phone) { alert('Please fill all required fields.'); return; }
+  document.getElementById('applyBtn').disabled = true;
+  try {
+    const res = await fetch('/api/jobs/' + jobId + '/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ full_name: name, email: email, phone: phone, resume_filename: document.getElementById('applyResume').value })
+    });
+    if (res.ok) {
+      document.getElementById('applyForm').style.display = 'none';
+      document.getElementById('successCard').style.display = 'block';
+    }
+  } catch(e) { alert('Failed to submit. Please try again.'); document.getElementById('applyBtn').disabled = false; }
+}
+
+async function toggleSave(jobId, btn) {
+  const res = await fetch('/api/jobs/' + jobId + '/save', { method: 'POST' });
+  const data = await res.json();
+  btn.style.color = data.saved ? '#16a34a' : '';
+  btn.querySelector('svg').setAttribute('fill', data.saved ? 'currentColor' : 'none');
+}
+</script>
+{% endblock %}

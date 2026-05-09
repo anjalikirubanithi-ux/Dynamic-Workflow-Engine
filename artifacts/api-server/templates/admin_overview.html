@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Admin Panel{% endblock %}
+{% block page_title %}Admin Panel{% endblock %}
+{% set active = 'admin' %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Admin Panel Overview</div>
+    <div class="page-subtitle">System-wide statistics and management</div>
+  </div>
+  <span class="badge blue" style="font-size:12px;padding:6px 14px">ADMIN</span>
+</div>
+
+<div class="stats-grid" style="margin-bottom:24px">
+  <div class="stat-card">
+    <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+    <div class="stat-label">Total Users</div>
+    <div class="stat-value blue">{{ stats.total_users }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+    <div class="stat-label">Total Analyses</div>
+    <div class="stat-value green">{{ stats.total_analyses }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+    <div class="stat-label">Total Feedback</div>
+    <div class="stat-value orange">{{ stats.total_feedback }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+    <div class="stat-label">Reports Filed</div>
+    <div class="stat-value red">{{ stats.total_reports }}</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Recent Activity</div></div>
+    <div class="table-wrap">
+      {% if stats.recent_activity %}
+      <table>
+        <thead><tr><th>Type</th><th>Description</th><th>Time</th></tr></thead>
+        <tbody>
+        {% for act in stats.recent_activity %}
+        <tr>
+          <td>
+            <span class="badge {% if act.type=='analysis' %}blue{% else %}fake{% endif %}">
+              {{ act.type.upper() }}
+            </span>
+          </td>
+          <td style="font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            {{ act.description or 'N/A' }}
+          </td>
+          <td style="font-size:12px;color:#64748b">{{ (act.time or '')[:16] }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><p>No recent activity.</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card card-body">
+      <div class="card-title" style="margin-bottom:16px">Quick Actions</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <a href="/admin/feedback" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          View Feedback & Reports
+        </a>
+        <a href="/history" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          All Analyses History
+        </a>
+        <a href="/jobs" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+          Manage Job Portal
+        </a>
+      </div>
+    </div>
+    <div class="card card-body" style="background:#eff6ff;border-color:#bfdbfe">
+      <div style="font-size:13px;font-weight:700;color:#2563eb;margin-bottom:8px">System Status</div>
+      <div style="font-size:13px;color:#374151">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span>AI Detection Engine</span>
+          <span style="color:#16a34a;font-weight:700">● Active</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span>Database</span>
+          <span style="color:#16a34a;font-weight:700">● Online</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>API Server</span>
+          <span style="color:#16a34a;font-weight:700">● Running</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

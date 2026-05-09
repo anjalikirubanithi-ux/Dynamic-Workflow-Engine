@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Result – {{ analysis.result.upper() }}{% endblock %}
+{% block page_title %}Result Summary{% endblock %}
+{% set active = 'analyze' %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Result Summary</div>
+    <div class="page-subtitle">AI analysis complete — {{ analysis.created_at[:10] }}</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a href="/analyze" class="btn btn-secondary btn-sm">Analyze Another</a>
+    {% if analysis.result == 'fake' %}
+    <a href="/report" class="btn btn-danger btn-sm">Report Cybercrime</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Left: Stamp + Score -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card card-body" style="text-align:center">
+      <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:16px;text-transform:uppercase;letter-spacing:.05em">Result</div>
+      <div class="result-stamp {{ analysis.result }}">
+        <div class="stamp-icon">
+          {% if analysis.result == 'fake' %}🚫{% elif analysis.result == 'safe' %}✅{% else %}⚠️{% endif %}
+        </div>
+        {% if analysis.result == 'fake' %}FAKE JOB{% elif analysis.result == 'safe' %}SAFE JOB{% else %}SUSPICIOUS{% endif %}
+        <div style="font-size:10px;margin-top:4px;opacity:.7">
+          {% if analysis.result == 'fake' %}HIGH RISK{% elif analysis.result == 'safe' %}LOW RISK{% else %}MEDIUM RISK{% endif %}
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <div style="font-size:12px;color:#64748b;margin-bottom:8px">Confidence Score</div>
+        <div class="confidence-ring">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="track" cx="40" cy="40" r="32"/>
+            <circle class="fill {{ analysis.result }}" cx="40" cy="40" r="32"
+              stroke-dasharray="{{ 2 * 3.14159 * 32 }}"
+              stroke-dashoffset="{{ 2 * 3.14159 * 32 * (1 - analysis.confidence_score/100) }}"
+            />
+          </svg>
+          <div class="confidence-num">{{ analysis.confidence_score }}%</div>
+        </div>
+        <div style="margin-top:10px">
+          <span class="badge {% if analysis.risk_level=='high' %}fake{% elif analysis.risk_level=='low' %}safe{% else %}suspicious{% endif %}">
+            Risk Level: {{ analysis.risk_level.upper() }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="card card-body">
+      <div class="card-title" style="margin-bottom:4px">Was this result correct?</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:16px">Your feedback helps us improve our system.</div>
+      <div id="feedbackBtns" style="display:flex;gap:10px">
+        <button class="btn btn-success" style="flex:1" onclick="submitFeedback(true)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Correct
+        </button>
+        <button class="btn btn-danger" style="flex:1" onclick="submitFeedback(false)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Wrong
+        </button>
+      </div>
+      <div id="feedbackThanks" style="display:none;text-align:center;padding:12px">
+        <div style="font-size:24px">🙏</div>
+        <div style="font-weight:600;margin-top:4px">Thank you for your feedback!</div>
+      </div>
+      {% if analysis.feedback_given is not none %}
+      <div style="text-align:center;padding:8px;font-size:13px;color:#16a34a;margin-top:8px">
+        ✓ Feedback already submitted
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right: Details -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card card-body">
+      <div style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">AI Explanation</div>
+      <p style="font-size:14px;color:#374151;line-height:1.6">{{ analysis.ai_explanation }}</p>
+    </div>
+
+    <div class="card card-body">
+      <div style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Key Reasons</div>
+      <ul class="reasons-list {% if analysis.result=='safe' %}safe{% endif %}">
+        {% for reason in analysis.key_reasons %}
+        <li>{{ reason }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="grid-2" style="gap:12px">
+      <div class="card card-body">
+        <div style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Keyword Highlights</div>
+        <div class="keyword-chips">
+          {% for kw in analysis.keyword_highlights %}
+          <span class="chip {% if analysis.result=='safe' %}safe{% endif %}">{{ kw }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="card card-body">
+        <div style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Safety Tips</div>
+        <ul style="list-style:none;font-size:12px;color:#374151">
+          {% for tip in analysis.safety_tips %}
+          <li style="padding:4px 0;border-bottom:1px solid #f1f5f9;display:flex;gap:6px;align-items:flex-start">
+            <span style="color:#16a34a;font-weight:700;flex-shrink:0">✓</span>{{ tip }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a href="/analyze" class="btn btn-secondary">Analyze Another</a>
+      {% if analysis.result == 'fake' or analysis.result == 'suspicious' %}
+      <a href="/report" class="btn btn-danger">Report Cybercrime</a>
+      {% endif %}
+      <a href="/history" class="btn btn-outline">View History</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function submitFeedback(isCorrect) {
+  document.getElementById('feedbackBtns').style.display = 'none';
+  try {
+    await fetch('/api/feedback/{{ analysis.id }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_correct: isCorrect })
+    });
+  } catch(e) {}
+  document.getElementById('feedbackThanks').style.display = 'block';
+}
+</script>
+{% endblock %}

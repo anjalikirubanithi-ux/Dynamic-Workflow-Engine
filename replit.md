@@ -1,45 +1,58 @@
-# [Project name]
+# JobGuard AI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Intelligent job fraud detection web application. Users paste job descriptions, URLs, emails, or image text to get instant AI-powered analysis identifying fake vs safe job postings.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- The app runs via the `artifacts/jobguard-ai: web` workflow
+- Command: `python /home/runner/workspace/artifacts/api-server/app.py`
+- Port: 22547 (proxied to `/` via the shared reverse proxy)
+- Demo login: rahul@gmail.com / user123 (user), admin@jobguard.ai / admin123 (admin)
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- **Frontend**: Vanilla HTML, CSS, JavaScript (Jinja2 templates)
+- **Backend**: Python 3.11 + Flask 3.1
+- **Database**: SQLite (via sqlite3 built-in)
+- **Charts**: Chart.js via CDN
+- **Auth**: Flask session-based with werkzeug password hashing
+- **AI Detection**: Rule-based keyword scoring engine
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/api-server/app.py` — Flask routes (all 18 pages)
+- `artifacts/api-server/database.py` — SQLite setup, CRUD, seeding
+- `artifacts/api-server/ai_detector.py` — Rule-based fraud detection logic
+- `artifacts/api-server/templates/` — All Jinja2 HTML templates (15 pages)
+- `artifacts/api-server/static/css/style.css` — Complete CSS theme
+- `artifacts/api-server/jobguard.db` — SQLite database (auto-created on first run)
+
+## Pages
+
+1. Login / Register (no sidebar)
+2. Dashboard (stats cards + trend chart + recent analyses)
+3. Analyze Job (text / URL / image OCR / email tabs)
+4. Result (stamp + confidence ring + reasons + feedback)
+5. History (filterable table of all analyses)
+6. Insights (charts + distribution breakdown)
+7. Job Portal (browse with AI scores + verification badges)
+8. Job Detail (apply form + save job)
+9. My Applications (applied + saved jobs)
+10. Cybercrime Report (report fake jobs)
+11. Profile (update name/email + activity stats)
+12. Admin Overview (system-wide stats — admin only)
+13. Admin Feedback & Reports (feedback analytics — admin only)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Flask serves both HTML pages (server-side rendering) and REST API at `/api/*`
+- Session-based auth using Flask's built-in session + werkzeug hashing
+- Rule-based AI detector scores content 0–100 based on keyword patterns; score ≥ 60 = fake, ≥ 30 = suspicious
+- SQLite chosen for simplicity and zero-config deployment
+- Chart.js loaded from CDN to avoid build steps
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Frontend: plain HTML, CSS, JavaScript (no React, no TypeScript, no Vite)
+- Backend: Python Flask
+- Database: SQLite
