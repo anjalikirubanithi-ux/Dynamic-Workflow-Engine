@@ -5,7 +5,9 @@
  * JobGuard AI API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ListJobsStatus } from "./listJobsStatus";
 
-export interface HealthStatus {
-  status: string;
-}
+export type ListJobsParams = {
+  search?: string;
+  status?: ListJobsStatus;
+};
