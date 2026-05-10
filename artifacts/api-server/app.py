@@ -10,7 +10,7 @@ import io
 from functools import wraps
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
-app.secret_key = os.environ.get('SECRET_KEY', 'jobguard-ai-secret-2025')
+app.secret_key = os.environ.get('SESSION_SECRET', os.environ.get('SECRET_KEY', 'jobguard-ai-secret-2025'))
 
 # ── Auth decorators ────────────────────────────────────────────────────────
 def login_required(f):
@@ -326,7 +326,7 @@ def admin_feedback():
 @app.route('/api/admin/reports/<int:report_id>/action', methods=['POST'])
 @admin_required
 def api_admin_report_action(report_id):
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     status = data.get('status', 'reviewed')
     db.update_report_status(report_id, status)
     db.log_admin_action(session['user_id'], f'report_{status}', f'report:{report_id}')
@@ -342,7 +342,7 @@ def admin_users():
 @app.route('/api/admin/users/<int:user_id>/status', methods=['POST'])
 @admin_required
 def api_admin_user_status(user_id):
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     status = data.get('status', 'Active')
     db.update_user_status(user_id, status)
     db.log_admin_action(session['user_id'], f'user_{status.lower()}', f'user:{user_id}')
@@ -391,7 +391,7 @@ def api_admin_job(job_id):
         db.delete_job(job_id)
         db.log_admin_action(session['user_id'], 'job_deleted', f'job:{job_id}')
         return jsonify({'message': 'Job deleted'})
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     db.update_job(job_id, data)
     db.log_admin_action(session['user_id'], 'job_updated', f'job:{job_id}')
     return jsonify({'message': 'Job updated successfully'})

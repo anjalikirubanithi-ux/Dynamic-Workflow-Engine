@@ -30,11 +30,11 @@
           </span>
         </td>
         <td>
-          <span class="badge {{ app.status }}">
-            {% if app.status == 'under_review' %}Under Review
-            {% elif app.status == 'shortlisted' %}Shortlisted
-            {% elif app.status == 'rejected' %}Rejected
-            {% elif app.status == 'accepted' %}Accepted
+          <span class="badge {% if app.status == 'under_review' %}suspicious{% elif app.status == 'shortlisted' %}blue{% elif app.status == 'rejected' %}fake{% elif app.status == 'accepted' %}safe{% else %}gray{% endif %}">
+            {% if app.status == 'under_review' %}⏳ Under Review
+            {% elif app.status == 'shortlisted' %}⭐ Shortlisted
+            {% elif app.status == 'rejected' %}✗ Rejected
+            {% elif app.status == 'accepted' %}✓ Accepted
             {% else %}{{ app.status }}{% endif %}
           </span>
         </td>
