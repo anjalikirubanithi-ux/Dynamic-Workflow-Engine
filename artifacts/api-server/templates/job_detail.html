@@ -93,9 +93,28 @@
         <input type="tel" id="applyPhone" placeholder="9876543210">
       </div>
       <div class="form-group">
-        <label>Resume (PDF)</label>
-        <input type="text" id="applyResume" placeholder="resume.pdf (filename)">
+        <label>Resume <span style="font-weight:400;color:#64748b">(PDF, DOC, DOCX — optional)</span></label>
+        <div id="resumeDropZone"
+          style="border:2px dashed #e2e8f0;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:#fafafa"
+          onclick="document.getElementById('resumeFile').click()"
+          ondragover="resumeDragOver(event)" ondragleave="resumeDragLeave(event)" ondrop="resumeDrop(event)">
+          <div id="resumePlaceholder">
+            <div style="font-size:28px;margin-bottom:6px">📄</div>
+            <div style="font-size:13px;font-weight:600;color:#374151">Click to upload or drag & drop</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:3px">PDF, DOC, DOCX supported</div>
+          </div>
+          <div id="resumeSelected" style="display:none;align-items:center;gap:10px;justify-content:center">
+            <span style="font-size:24px">📎</span>
+            <div style="text-align:left">
+              <div id="resumeFileName" style="font-size:13px;font-weight:700;color:#0f172a"></div>
+              <div id="resumeFileSize" style="font-size:11px;color:#64748b"></div>
+            </div>
+            <button type="button" onclick="clearResume(event)" style="margin-left:8px;background:none;border:none;cursor:pointer;color:#dc2626;font-size:18px;padding:0">×</button>
+          </div>
+        </div>
+        <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" style="display:none" onchange="handleResumeSelect(this)">
       </div>
+
       <div style="display:flex;gap:8px">
         <button class="btn btn-primary btn-full" onclick="submitApplication({{ job.id }})" id="applyBtn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -115,6 +134,8 @@
       <div style="text-align:center">
         <div style="font-size:16px;font-weight:800;margin-bottom:4px">Application Submitted!</div>
         <p style="font-size:13px;color:#64748b">Your application has been submitted successfully. The company will contact you soon.</p>
+        <div id="resumeInfo" style="display:none;font-size:12px;color:#16a34a;font-weight:600;margin-top:8px;background:#f0fdf4;padding:6px 12px;border-radius:6px;border:1px solid #bbf7d0"></div>
+        <p style="font-size:12px;color:#94a3b8;margin-top:8px">Redirecting to My Applications...</p>
         <a href="/my-applications" class="btn btn-primary" style="margin-top:12px">Go to My Applications</a>
       </div>
     </div>
@@ -124,34 +145,108 @@
 
 {% block scripts %}
 <script>
+let selectedResumeFile = null;
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function showResumeFile(file) {
+  selectedResumeFile = file;
+  document.getElementById('resumePlaceholder').style.display = 'none';
+  document.getElementById('resumeSelected').style.display = 'flex';
+  document.getElementById('resumeFileName').textContent = file.name;
+  document.getElementById('resumeFileSize').textContent = formatBytes(file.size);
+  document.getElementById('resumeDropZone').style.borderColor = '#16a34a';
+  document.getElementById('resumeDropZone').style.background = '#f0fdf4';
+}
+
+function clearResume(e) {
+  e.stopPropagation();
+  selectedResumeFile = null;
+  document.getElementById('resumeFile').value = '';
+  document.getElementById('resumePlaceholder').style.display = 'block';
+  document.getElementById('resumeSelected').style.display = 'none';
+  document.getElementById('resumeDropZone').style.borderColor = '#e2e8f0';
+  document.getElementById('resumeDropZone').style.background = '#fafafa';
+}
+
+function handleResumeSelect(input) {
+  if (input.files[0]) showResumeFile(input.files[0]);
+}
+
+function resumeDragOver(e) {
+  e.preventDefault();
+  document.getElementById('resumeDropZone').style.borderColor = '#2563eb';
+  document.getElementById('resumeDropZone').style.background = '#eff6ff';
+}
+
+function resumeDragLeave(e) {
+  if (!selectedResumeFile) {
+    document.getElementById('resumeDropZone').style.borderColor = '#e2e8f0';
+    document.getElementById('resumeDropZone').style.background = '#fafafa';
+  }
+}
+
+function resumeDrop(e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['pdf','doc','docx'].includes(ext)) {
+    alert('Only PDF, DOC, and DOCX files are supported.');
+    resumeDragLeave(e);
+    return;
+  }
+  showResumeFile(file);
+}
+
+const BTN_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+
 async function submitApplication(jobId) {
   const name = document.getElementById('applyName').value.trim();
   const email = document.getElementById('applyEmail').value.trim();
   const phone = document.getElementById('applyPhone').value.trim();
   if (!name || !email || !phone) { alert('Please fill Name, Email and Phone fields.'); return; }
+
   const btn = document.getElementById('applyBtn');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px"></div> Submitting...';
+
+  const formData = new FormData();
+  formData.append('full_name', name);
+  formData.append('email', email);
+  formData.append('phone', phone);
+  if (selectedResumeFile) {
+    formData.append('resume', selectedResumeFile);
+  }
+
   try {
     const res = await fetch('/api/jobs/' + jobId + '/apply', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ full_name: name, email: email, phone: phone, resume_filename: document.getElementById('applyResume').value })
+      body: formData
     });
     const data = await res.json();
     if (res.ok) {
       document.getElementById('applyForm').style.display = 'none';
-      document.getElementById('successCard').style.display = 'block';
+      const sc = document.getElementById('successCard');
+      sc.style.display = 'block';
+      if (selectedResumeFile) {
+        document.getElementById('resumeInfo').textContent = '📎 ' + selectedResumeFile.name + ' uploaded';
+        document.getElementById('resumeInfo').style.display = 'block';
+      }
       setTimeout(() => { window.location.href = '/my-applications'; }, 2500);
     } else {
       alert(data.error || 'Failed to submit. Please try again.');
       btn.disabled = false;
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Submit Application';
+      btn.innerHTML = BTN_ICON + ' Submit Application';
     }
   } catch(e) {
     alert('Network error. Please try again.');
     btn.disabled = false;
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Submit Application';
+    btn.innerHTML = BTN_ICON + ' Submit Application';
   }
 }
 

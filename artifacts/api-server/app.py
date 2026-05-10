@@ -233,8 +233,26 @@ def job_detail(job_id):
 @app.route('/api/jobs/<int:job_id>/apply', methods=['POST'])
 @login_required
 def api_apply(job_id):
-    data = request.get_json(force=True, silent=True) or {}
     try:
+        import uuid, os
+        data = {
+            'full_name': request.form.get('full_name', '').strip(),
+            'email': request.form.get('email', '').strip(),
+            'phone': request.form.get('phone', '').strip(),
+            'resume_filename': ''
+        }
+        if not data['full_name'] or not data['email'] or not data['phone']:
+            return jsonify({'error': 'Name, email, and phone are required'}), 400
+        resume_file = request.files.get('resume')
+        if resume_file and resume_file.filename:
+            ext = os.path.splitext(resume_file.filename)[1].lower()
+            if ext not in ['.pdf', '.doc', '.docx']:
+                return jsonify({'error': 'Only PDF, DOC, and DOCX files are allowed'}), 400
+            safe_name = f"{uuid.uuid4().hex}{ext}"
+            uploads_dir = os.path.join(os.path.dirname(__file__), 'uploads')
+            os.makedirs(uploads_dir, exist_ok=True)
+            resume_file.save(os.path.join(uploads_dir, safe_name))
+            data['resume_filename'] = resume_file.filename
         app_id = db.apply_for_job(job_id, session['user_id'], data)
         return jsonify({'application_id': app_id, 'message': 'Application submitted successfully'})
     except Exception as e:
