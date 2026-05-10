@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "eEWw1MkhQ8mo0cjk9SEF1"
+uri = "file://jobguard-ai.zip"
+type = "unspecified"
+title = "JobGuard AI — Full Project (ZIP)"
