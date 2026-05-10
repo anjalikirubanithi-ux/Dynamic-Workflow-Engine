@@ -285,6 +285,13 @@ def admin_overview():
     analytics = db.get_platform_analytics()
     return render_template('admin_overview.html', stats=stats, analytics=analytics)
 
+@app.route('/admin/analytics')
+@admin_required
+def admin_analytics():
+    stats = db.get_admin_stats()
+    analytics = db.get_platform_analytics()
+    return render_template('admin_analytics.html', stats=stats, analytics=analytics)
+
 @app.route('/admin/feedback')
 @admin_required
 def admin_feedback():

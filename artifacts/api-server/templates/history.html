@@ -6,17 +6,36 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <div class="page-title">History</div>
-    <div class="page-subtitle">All your previously analyzed job postings</div>
+    <div class="page-title">Analysis History</div>
+    <div class="page-subtitle">All your previously analyzed job postings with ML fraud scores</div>
   </div>
-  <a href="/analyze" class="btn btn-primary">New Analysis</a>
+  <a href="/analyze" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    New Analysis
+  </a>
+</div>
+
+<!-- Filter bar -->
+<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+  <div style="position:relative;flex:1;min-width:200px">
+    <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" placeholder="Search jobs, descriptions..." style="padding-left:36px" oninput="filterTable(this.value)">
+  </div>
+  <div style="display:flex;gap:6px">
+    <button class="tab-btn active" onclick="filterResult('all',this)">All</button>
+    <button class="tab-btn" onclick="filterResult('fake',this)" style="border-color:#fecaca;color:#dc2626">🚫 Fake</button>
+    <button class="tab-btn" onclick="filterResult('safe',this)" style="border-color:#bbf7d0;color:#16a34a">✅ Safe</button>
+    <button class="tab-btn" onclick="filterResult('suspicious',this)" style="border-color:#fde68a;color:#d97706">⚠️ Suspicious</button>
+  </div>
 </div>
 
 <div class="card">
   <div class="card-header" style="padding-bottom:0">
     <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid #f1f5f9">
-      <div class="card-title">All Analyses ({{ analyses|length }})</div>
-      <input type="text" id="searchInput" placeholder="Search..." style="width:200px;padding:7px 12px;font-size:13px" oninput="filterTable(this.value)">
+      <div class="card-title">All Analyses <span id="rowCount" style="font-weight:400;color:#94a3b8">({{ analyses|length }})</span></div>
+      {% if analyses %}
+      <div style="font-size:12px;color:#64748b">Click any row to view full result</div>
+      {% endif %}
     </div>
   </div>
   <div class="table-wrap">
@@ -28,40 +47,53 @@
           <th>Job / Description</th>
           <th>Type</th>
           <th>Result</th>
-          <th>Score</th>
+          <th>Fraud Score</th>
+          <th>Confidence</th>
           <th>Risk</th>
           <th>Date</th>
-          <th>Action</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
       {% for a in analyses %}
-      <tr class="history-row">
+      <tr class="history-row" data-result="{{ a.result }}" style="cursor:pointer" onclick="window.location='/result/{{ a.id }}'">
         <td style="color:#94a3b8;font-weight:600">{{ loop.index }}</td>
         <td>
-          <div style="font-weight:600;font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-            {{ a.job_title or (a.content[:50] + '...') }}
+          <div style="font-weight:700;font-size:13px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            {{ a.job_title or (a.content[:45] + '...') }}
           </div>
+          {% if a.job_title %}
+          <div style="font-size:11px;color:#94a3b8">{{ a.content[:30] }}...</div>
+          {% endif %}
         </td>
         <td>
-          <span class="badge gray" style="text-transform:capitalize">{{ a.input_type }}</span>
+          <span class="badge gray" style="text-transform:capitalize;font-size:10px">
+            {% if a.input_type=='text' %}📝{% elif a.input_type=='url' %}🔗{% elif a.input_type=='image' %}🖼️{% else %}📧{% endif %}
+            {{ a.input_type }}
+          </span>
         </td>
         <td>
           <span class="badge {{ a.result }}">
             {% if a.result=='fake' %}🚫 FAKE{% elif a.result=='safe' %}✅ SAFE{% else %}⚠️ SUSPICIOUS{% endif %}
           </span>
         </td>
-        <td style="font-weight:700;color:{% if a.result=='fake' %}#dc2626{% elif a.result=='safe' %}#16a34a{% else %}#d97706{% endif %}">
-          {{ a.confidence_score }}%
+        <td>
+          <div style="font-weight:800;font-size:15px;color:{% if a.result=='fake' %}#dc2626{% elif a.result=='safe' %}#16a34a{% else %}#d97706{% endif %}">
+            {{ a.fraud_score or a.confidence_score }}<span style="font-size:11px;font-weight:500">/100</span>
+          </div>
+          <div class="risk-bar" style="width:70px;margin-top:3px">
+            <div class="risk-bar-fill {{ a.result }}" style="width:{{ a.fraud_score or a.confidence_score }}%"></div>
+          </div>
         </td>
+        <td style="font-weight:700;color:#2563eb;font-size:13px">{{ a.confidence_score }}%</td>
         <td>
           <span class="badge {% if a.risk_level=='high' %}fake{% elif a.risk_level=='low' %}safe{% else %}suspicious{% endif %}" style="font-size:10px">
             {{ a.risk_level.upper() }}
           </span>
         </td>
-        <td style="color:#64748b;font-size:12px">{{ a.created_at[:10] }}</td>
+        <td style="color:#64748b;font-size:12px;white-space:nowrap">{{ a.created_at[:10] }}</td>
         <td>
-          <a href="/result/{{ a.id }}" class="btn btn-sm btn-secondary">View</a>
+          <a href="/result/{{ a.id }}" class="btn btn-sm btn-secondary" onclick="event.stopPropagation()">View</a>
         </td>
       </tr>
       {% endfor %}
@@ -70,7 +102,7 @@
     {% else %}
     <div class="empty-state">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <p>No analyses yet. <a href="/analyze" style="color:#2563eb">Start your first analysis!</a></p>
+      <p>No analyses yet. <a href="/analyze" style="color:#2563eb">Analyze your first job!</a></p>
     </div>
     {% endif %}
   </div>
@@ -79,11 +111,33 @@
 
 {% block scripts %}
 <script>
+let currentFilter = 'all';
+let currentSearch = '';
+
+function updateRowCount() {
+  const visible = document.querySelectorAll('.history-row:not([style*="display: none"])').length;
+  document.getElementById('rowCount').textContent = `(${visible} shown)`;
+}
+
 function filterTable(query) {
-  const rows = document.querySelectorAll('.history-row');
-  rows.forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(query.toLowerCase()) ? '' : 'none';
+  currentSearch = query.toLowerCase();
+  applyFilters();
+}
+
+function filterResult(result, btn) {
+  currentFilter = result;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  document.querySelectorAll('.history-row').forEach(row => {
+    const matchResult = currentFilter === 'all' || row.dataset.result === currentFilter;
+    const matchSearch = !currentSearch || row.textContent.toLowerCase().includes(currentSearch);
+    row.style.display = (matchResult && matchSearch) ? '' : 'none';
   });
+  updateRowCount();
 }
 </script>
 {% endblock %}

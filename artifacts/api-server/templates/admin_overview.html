@@ -1,17 +1,18 @@
 {% extends 'base.html' %}
 {% block title %}Admin Panel{% endblock %}
-{% block page_title %}Admin Panel{% endblock %}
+{% block page_title %}Admin Panel Overview{% endblock %}
 {% set active = 'admin' %}
 
 {% block content %}
 <div class="page-header">
   <div>
     <div class="page-title">Admin Panel Overview</div>
-    <div class="page-subtitle">System-wide statistics and management</div>
+    <div class="page-subtitle">System-wide statistics and platform management</div>
   </div>
   <span class="badge blue" style="font-size:12px;padding:6px 14px">ADMIN</span>
 </div>
 
+<!-- Stats -->
 <div class="stats-grid" style="margin-bottom:24px">
   <div class="stat-card">
     <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
@@ -24,20 +25,57 @@
     <div class="stat-value green">{{ stats.total_analyses }}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-    <div class="stat-label">Total Feedback</div>
-    <div class="stat-value orange">{{ stats.total_feedback }}</div>
+    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+    <div class="stat-label">Fake Jobs Found</div>
+    <div class="stat-value red">{{ stats.total_fake }}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+    <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
     <div class="stat-label">Reports Filed</div>
-    <div class="stat-value red">{{ stats.total_reports }}</div>
+    <div class="stat-value orange">{{ stats.total_reports }}</div>
   </div>
 </div>
 
+<!-- Charts row -->
+<div class="grid-2" style="margin-bottom:20px">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Platform Fraud Trend (Last 7 Days)</div></div>
+    <div class="chart-wrap" style="height:220px">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Verdict Distribution</div></div>
+    <div style="display:flex;align-items:center;gap:24px;padding:20px;height:220px">
+      <canvas id="pieChart" style="width:130px!important;height:130px!important;max-width:130px"></canvas>
+      <div style="flex:1">
+        {% set total_v = 0 %}
+        {% for r in analytics.by_result %}{% set total_v = total_v + r.count %}{% endfor %}
+        {% for r in analytics.by_result %}
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:13px;font-weight:700;text-transform:capitalize">{{ r.result }}</span>
+            <span style="font-size:13px;font-weight:700;color:{% if r.result=='fake' %}#dc2626{% elif r.result=='safe' %}#16a34a{% else %}#d97706{% endif %}">{{ r.count }}</span>
+          </div>
+          <div class="risk-bar">
+            <div class="risk-bar-fill {{ r.result }}" style="width:{{ ((r.count/total_v*100)|round(0)|int) if total_v > 0 else 0 }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom row -->
 <div class="grid-2">
   <div class="card">
-    <div class="card-header"><div class="card-title">Recent Activity</div></div>
+    <div class="card-header" style="padding-bottom:0">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid #f1f5f9">
+        <div class="card-title">Recent Activity</div>
+        <span style="font-size:12px;color:#64748b">Last 8 events</span>
+      </div>
+    </div>
     <div class="table-wrap">
       {% if stats.recent_activity %}
       <table>
@@ -46,14 +84,14 @@
         {% for act in stats.recent_activity %}
         <tr>
           <td>
-            <span class="badge {% if act.type=='analysis' %}blue{% else %}fake{% endif %}">
+            <span class="badge {% if act.type=='Analysis' %}blue{% else %}fake{% endif %}" style="font-size:10px">
               {{ act.type.upper() }}
             </span>
           </td>
-          <td style="font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
             {{ act.description or 'N/A' }}
           </td>
-          <td style="font-size:12px;color:#64748b">{{ (act.time or '')[:16] }}</td>
+          <td style="font-size:11px;color:#64748b">{{ (act.time or '')[:16] }}</td>
         </tr>
         {% endfor %}
         </tbody>
@@ -64,41 +102,99 @@
     </div>
   </div>
 
-  <div style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <!-- Quick Actions -->
     <div class="card card-body">
-      <div class="card-title" style="margin-bottom:16px">Quick Actions</div>
+      <div class="card-title" style="margin-bottom:12px">Admin Quick Actions</div>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <a href="/admin/feedback" class="btn btn-secondary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-          View Feedback & Reports
+        <a href="/admin/users" class="btn btn-secondary" style="justify-content:flex-start">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Manage Users
         </a>
-        <a href="/history" class="btn btn-secondary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          All Analyses History
-        </a>
-        <a href="/jobs" class="btn btn-secondary">
+        <a href="/admin/jobs" class="btn btn-secondary" style="justify-content:flex-start">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-          Manage Job Portal
+          Manage Jobs
+        </a>
+        <a href="/admin/feedback" class="btn btn-secondary" style="justify-content:flex-start">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Review Reports
+        </a>
+        <a href="/admin/analytics" class="btn btn-secondary" style="justify-content:flex-start">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Platform Analytics
         </a>
       </div>
     </div>
-    <div class="card card-body" style="background:#eff6ff;border-color:#bfdbfe">
-      <div style="font-size:13px;font-weight:700;color:#2563eb;margin-bottom:8px">System Status</div>
-      <div style="font-size:13px;color:#374151">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span>AI Detection Engine</span>
-          <span style="color:#16a34a;font-weight:700">● Active</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span>Database</span>
-          <span style="color:#16a34a;font-weight:700">● Online</span>
+
+    <!-- System status -->
+    <div class="card card-body" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border:none">
+      <div style="font-size:12px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">System Status</div>
+      <div style="font-size:13px;color:#cbd5e1;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between">
+          <span>ML Fraud Detection</span>
+          <span style="color:#4ade80;font-weight:700">● Active</span>
         </div>
         <div style="display:flex;justify-content:space-between">
-          <span>API Server</span>
-          <span style="color:#16a34a;font-weight:700">● Running</span>
+          <span>URL Scraping Engine</span>
+          <span style="color:#4ade80;font-weight:700">● Active</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>AI Chat Assistant</span>
+          <span style="color:#4ade80;font-weight:700">● Active</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>SQLite Database</span>
+          <span style="color:#4ade80;font-weight:700">● Online</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>OCR Engine</span>
+          <span style="color:#fbbf24;font-weight:700">⚠ Tesseract N/A</span>
         </div>
       </div>
+    </div>
+
+    <!-- Input type breakdown -->
+    <div class="card card-body">
+      <div class="card-title" style="margin-bottom:12px">Analyses by Input Type</div>
+      {% for t in analytics.by_type %}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;text-transform:capitalize;font-weight:600">
+          {% if t.input_type=='text' %}📝{% elif t.input_type=='url' %}🔗{% elif t.input_type=='image' %}🖼️{% else %}📧{% endif %}
+          {{ t.input_type }}
+        </span>
+        <span class="badge blue">{{ t.count }}</span>
+      </div>
+      {% else %}
+      <div style="font-size:13px;color:#94a3b8">No data yet</div>
+      {% endfor %}
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const trend = {{ analytics.daily_trend | tojson }};
+new Chart(document.getElementById('trendChart'), {
+  type: 'bar',
+  data: {
+    labels: trend.length ? trend.map(d => d.day) : ['No Data'],
+    datasets: [
+      { label: 'Total', data: trend.map(d => d.total), backgroundColor: 'rgba(37,99,235,.7)', borderRadius: 4 },
+      { label: 'Fake', data: trend.map(d => d.fake), backgroundColor: 'rgba(220,38,38,.7)', borderRadius: 4 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+const byResult = {{ analytics.by_result | tojson }};
+const colorMap = { safe: '#16a34a', fake: '#dc2626', suspicious: '#d97706' };
+new Chart(document.getElementById('pieChart'), {
+  type: 'doughnut',
+  data: {
+    labels: byResult.map(r => r.result),
+    datasets: [{ data: byResult.map(r => r.count), backgroundColor: byResult.map(r => colorMap[r.result] || '#94a3b8'), borderWidth: 0 }]
+  },
+  options: { responsive: false, plugins: { legend: { display: false } }, cutout: '60%' }
+});
+</script>
 {% endblock %}
