@@ -12,3 +12,9 @@ id = "Jou31qLAZw4MLo5w0oIkU"
 uri = "file://jobguard-ai-vscode.zip"
 type = "unspecified"
 title = "JobGuard AI — VS Code Ready Package"
+
+[[outputs]]
+id = "h1z7sMr4E39LCRMIcSJN4"
+uri = "file://jobguard-ai-screenshots.zip"
+type = "unspecified"
+title = "JobGuard AI — All 17 Page Screenshots"
