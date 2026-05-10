@@ -114,26 +114,29 @@ def analyze():
 @app.route('/api/analyze', methods=['POST'])
 @login_required
 def api_analyze():
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     input_type = data.get('input_type', 'text')
-    content = data.get('content', '')
-    job_title = data.get('job_title', '')
+    content = data.get('content', '').strip()
+    job_title = data.get('job_title', '').strip()
     if not content:
         return jsonify({'error': 'Content is required'}), 400
-    result = ai_detector.analyze(content, input_type)
-    analysis_id = db.save_analysis(
-        user_id=session['user_id'],
-        input_type=input_type,
-        content=content,
-        job_title=job_title,
-        result=result
-    )
-    return jsonify({'id': analysis_id, 'result': result})
+    try:
+        result = ai_detector.analyze(content, input_type)
+        analysis_id = db.save_analysis(
+            user_id=session['user_id'],
+            input_type=input_type,
+            content=content,
+            job_title=job_title,
+            result=result
+        )
+        return jsonify({'id': analysis_id, 'result': result})
+    except Exception as e:
+        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
 
 @app.route('/api/scrape-url', methods=['POST'])
 @login_required
 def api_scrape_url():
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     url = data.get('url', '').strip()
     if not url:
         return jsonify({'success': False, 'error': 'URL is required'}), 400
@@ -145,7 +148,7 @@ def api_scrape_url():
 @app.route('/api/ocr', methods=['POST'])
 @login_required
 def api_ocr():
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     image_b64 = data.get('image', '')
     if not image_b64:
         return jsonify({'success': False, 'error': 'No image provided'}), 400
@@ -167,7 +170,7 @@ def api_ocr():
 @app.route('/api/chat', methods=['POST'])
 @login_required
 def api_chat():
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     message = data.get('message', '').strip()
     context = data.get('context', '')
     analysis = data.get('analysis')
@@ -188,7 +191,7 @@ def result(analysis_id):
 @app.route('/api/feedback/<int:analysis_id>', methods=['POST'])
 @login_required
 def api_feedback(analysis_id):
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     is_correct = data.get('is_correct', True)
     db.save_feedback(analysis_id, session['user_id'], is_correct)
     return jsonify({'message': 'Thank you for your feedback!'})
@@ -230,9 +233,12 @@ def job_detail(job_id):
 @app.route('/api/jobs/<int:job_id>/apply', methods=['POST'])
 @login_required
 def api_apply(job_id):
-    data = request.get_json()
-    app_id = db.apply_for_job(job_id, session['user_id'], data)
-    return jsonify({'application_id': app_id, 'message': 'Application submitted successfully'})
+    data = request.get_json(force=True, silent=True) or {}
+    try:
+        app_id = db.apply_for_job(job_id, session['user_id'], data)
+        return jsonify({'application_id': app_id, 'message': 'Application submitted successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/jobs/<int:job_id>/save', methods=['POST'])
 @login_required
@@ -256,7 +262,7 @@ def report_page():
 @app.route('/api/report', methods=['POST'])
 @login_required
 def api_report():
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     report_id = db.create_report(session['user_id'], data)
     return jsonify({'report_id': report_id, 'message': 'Report submitted to cybercrime portal'})
 
@@ -271,7 +277,7 @@ def profile():
 @app.route('/api/profile', methods=['POST'])
 @login_required
 def api_update_profile():
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     db.update_user(session['user_id'], data)
     if data.get('full_name'):
         session['full_name'] = data['full_name']

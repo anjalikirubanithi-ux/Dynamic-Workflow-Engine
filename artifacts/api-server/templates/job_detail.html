@@ -125,22 +125,34 @@
 {% block scripts %}
 <script>
 async function submitApplication(jobId) {
-  const name = document.getElementById('applyName').value;
-  const email = document.getElementById('applyEmail').value;
-  const phone = document.getElementById('applyPhone').value;
-  if (!name || !email || !phone) { alert('Please fill all required fields.'); return; }
-  document.getElementById('applyBtn').disabled = true;
+  const name = document.getElementById('applyName').value.trim();
+  const email = document.getElementById('applyEmail').value.trim();
+  const phone = document.getElementById('applyPhone').value.trim();
+  if (!name || !email || !phone) { alert('Please fill Name, Email and Phone fields.'); return; }
+  const btn = document.getElementById('applyBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px"></div> Submitting...';
   try {
     const res = await fetch('/api/jobs/' + jobId + '/apply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ full_name: name, email: email, phone: phone, resume_filename: document.getElementById('applyResume').value })
     });
+    const data = await res.json();
     if (res.ok) {
       document.getElementById('applyForm').style.display = 'none';
       document.getElementById('successCard').style.display = 'block';
+      setTimeout(() => { window.location.href = '/my-applications'; }, 2500);
+    } else {
+      alert(data.error || 'Failed to submit. Please try again.');
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Submit Application';
     }
-  } catch(e) { alert('Failed to submit. Please try again.'); document.getElementById('applyBtn').disabled = false; }
+  } catch(e) {
+    alert('Network error. Please try again.');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Submit Application';
+  }
 }
 
 async function toggleSave(jobId, btn) {
