@@ -216,6 +216,119 @@ TRAINING_DATA = [
     ("funded startup hiring senior engineer 4 years experience esops ctc 18 30 lpa apply founders", 0),
     ("early stage startup product engineer 3 years equity ctc 12 22 lpa apply email pitch deck", 0),
     ("series a startup growth hacker 3 years experience salary 10 18 lpa equity options apply", 0),
+
+    # ── MORE FAKE / SCAM ──────────────────────────────────────────────────────
+    # Fake work-from-home
+    ("home based job earn 4000 daily simple typing copy paste whatsapp me now no experience needed", 1),
+    ("work from mobile phone earn 500 per task no qualification registration fee 250 required", 1),
+    ("earn 2 lakh per month working online from your phone zero investment join today", 1),
+    ("part time online job students housewife welcome earn 1000 per hour whatsapp interview", 1),
+    ("daily income 3000 guaranteed simple task online work telegram join group fee 100 only", 1),
+    ("earn by watching videos liking posts commenting earn 200 per hour whatsapp me urgent", 1),
+    ("app tester job earn 5000 per app tested no experience needed join today advance 300", 1),
+    ("online ad clicking job earn 2000 per day no investment needed pay registration 150", 1),
+    ("reselling business earn 50 per sale work from home minimum investment profit daily", 1),
+    ("share broker agent earn 10000 weekly refer clients no experience pay joining 500", 1),
+    # Fake job schemes using trust words
+    ("100 percent placement guarantee pay course fee 20000 get job guaranteed six months", 1),
+    ("job guarantee after training fee 15000 placement assured in mnc companies pay now", 1),
+    ("internship pay 500 per day earn while you learn no experience pay registration 1000", 1),
+    ("freelance project earn 50000 per project no experience registration 2000 advance", 1),
+    ("blockchain nft job earn 1 lakh per month no experience pay training advance 5000", 1),
+    # Scam pharma/medical
+    ("medical coding work from home earn 30000 monthly no experience pay 2000 training fee", 1),
+    ("ayurvedic medicine seller earn 10000 per month pay inventory deposit 5000 start now", 1),
+    # Fake education/tutoring scam
+    ("online tutoring earn 500 per hour no qualification needed pay registration fee 300", 1),
+    ("content creator earn 10000 weekly youtube instagram pay training fee 1000 join now", 1),
+    # Fake government/PSU scams
+    ("upsc ssc cgl direct recruitment 2024 no exam pay 800 fee selection guaranteed apply", 1),
+    ("railway group d direct selection 2024 no exam fee 500 registration apply whatsapp", 1),
+    ("post office job vacancy 2024 no interview pay 300 registration fee direct joining", 1),
+    ("income tax department recruitment 2024 no exam required pay processing fee 1000", 1),
+    # High pressure language
+    ("only 10 seats left earn 5000 daily register now urgent last date today advance fee", 1),
+    ("limited offer work from home earn lakh per month hurry up registration closing today", 1),
+    ("urgent vacancy earn 8000 daily no interview send advance 200 get job immediately", 1),
+    # Fake finance jobs
+    ("loan recovery agent earn 1000 per case work from home whatsapp me no experience", 1),
+    ("insurance agent earn 50000 monthly no experience required pay registration 500 now", 1),
+    ("mutual fund agent earn 2 lakh monthly refer clients no experience pay joining fee", 1),
+    # Fake ecommerce jobs
+    ("amazon seller earn 50000 monthly work from home pay membership fee 1000 register", 1),
+    ("meesho reseller earn 500 per order no investment pay registration fee 200 apply", 1),
+    ("flipkart delivery partner earn 5000 daily no experience pay uniform deposit 500", 1),
+    # Fake IT/software scams
+    ("software testing work from home earn 2000 per hour no experience pay fee 1500", 1),
+    ("ethical hacking course earn after training 1 lakh monthly pay fee 10000 advance", 1),
+    ("web developer work from home no experience needed earn 3000 daily pay training 500", 1),
+    # Obscure channels/contacts
+    ("contact hr on instagram dm for instant job selection earn 5000 daily no interview", 1),
+    ("facebook group link for online earning job no experience earn daily payment", 1),
+    ("apply via email unknown company earn 80000 monthly no experience pay advance fee", 1),
+    # Financial scams
+    ("invest 5000 earn 50000 per month guaranteed returns binary options forex join now", 1),
+    ("cryptocurrency trading earn passive income guaranteed daily profit join group fee", 1),
+    ("stock market tips earn guaranteed profit pay 3000 for premium signals telegram group", 1),
+
+    # ── MORE SAFE / LEGITIMATE ────────────────────────────────────────────────
+    # Large MNCs
+    ("deloitte senior consultant 6 years experience strategy ctc 25 40 lpa apply deloitte careers", 0),
+    ("pwc chartered accountant 3 years experience audit advisory salary 12 20 lpa apply pwc", 0),
+    ("kpmg risk consultant 4 years experience ctc 14 22 lpa bangalore apply kpmg careers india", 0),
+    ("ernst young senior analyst 3 years experience ctc 12 18 lpa apply ey careers portal", 0),
+    ("mckinsey associate mba 3 years experience consulting ctc 30 50 lpa apply mckinsey", 0),
+    ("ibm software engineer cloud 3 years experience ctc 10 18 lpa apply ibm careers india", 0),
+    ("oracle database developer 4 years experience ctc 12 20 lpa apply oracle india careers", 0),
+    ("sap india functional consultant 5 years experience ctc 18 28 lpa apply sap careers", 0),
+    # Healthcare (detailed)
+    ("dentist bds mds 3 years clinical experience salary 50000 80000 per month apply email", 0),
+    ("clinical research associate life sciences 2 years experience ctc 5 9 lpa bangalore", 0),
+    ("hospital administrator mbahealthcare 5 years experience salary 12 20 lpa delhi apply", 0),
+    ("lab technician bsc medical lab 2 years experience salary 20000 30000 per month apply", 0),
+    # Government/PSU (real)
+    ("isro scientist engineer btech aerospace electronics 2 years experience apply isro site", 0),
+    ("drdo research scientist phd preferred 3 years research experience apply official portal", 0),
+    ("ongc petroleum engineer 2 years experience gate score required salary 12 lpa apply", 0),
+    ("bsnl junior engineer btele electronics salary 7 10 lpa apply bsnl official careers", 0),
+    # Retail/FMCG
+    ("area sales manager fmcg 5 years experience territory management salary 10 18 lpa apply", 0),
+    ("key account manager modern trade 4 years experience ctc 12 20 lpa apply hr email", 0),
+    ("retail store manager 5 years experience p l responsibility salary 8 14 lpa apply", 0),
+    ("category manager ecommerce 4 years experience salary 15 25 lpa bengaluru apply email", 0),
+    # Real estate/construction
+    ("real estate sales executive 2 years experience rera knowledge salary 4 8 lpa mumbai", 0),
+    ("structural engineer btech civil 3 years experience staad pro salary 5 9 lpa apply", 0),
+    ("interior designer 3 years experience autocad sketchup portfolio required salary 5 lpa", 0),
+    # Fintech/Banking
+    ("axis bank relationship manager 2 years banking experience salary 4 7 lpa apply portal", 0),
+    ("hdfc credit analyst 3 years experience ca preferred salary 8 14 lpa apply hdfc", 0),
+    ("razorpay product manager 5 years fintech experience ctc 25 40 lpa apply razorpay", 0),
+    ("zerodha software developer 3 years python experience ctc 12 22 lpa apply email", 0),
+    ("paytm data scientist 3 years ml experience ctc 18 30 lpa apply paytm careers portal", 0),
+    # Remote (legitimate)
+    ("remote senior engineer 5 years react node experience ctc 20 35 lpa apply email portfolio", 0),
+    ("fully remote data scientist 4 years ml experience ctc 22 38 lpa apply via linkedin", 0),
+    ("remote technical writer 2 years experience api docs salary 8 14 lpa apply careers page", 0),
+    # Internships (detailed)
+    ("software intern iit nit preferred stipend 25000 30000 per month 6 months ppo possible", 0),
+    ("product intern mba tier 1 preferred stipend 20000 per month 3 months apply company", 0),
+    ("research intern phd student stipend 35000 per month iisc iit preferred apply email", 0),
+    # Education sector
+    ("edtech curriculum designer 3 years experience salary 6 12 lpa bangalore apply email", 0),
+    ("byjus senior teacher subject expert 5 years experience salary 8 15 lpa apply portal", 0),
+    ("unacademy educator content creator 3 years teaching salary 60000 per month apply", 0),
+    # Media/Creative
+    ("video editor adobe premiere 2 years experience salary 25000 40000 per month apply", 0),
+    ("copywriter advertising agency 3 years experience portfolio required salary 5 10 lpa", 0),
+    ("social media manager 2 years experience meta ads analytics salary 4 8 lpa apply", 0),
+    # Logistics/Supply Chain
+    ("warehouse manager 5 years experience wms inventory salary 6 12 lpa apply hr email", 0),
+    ("import export executive 3 years experience customs dgft salary 4 8 lpa apply email", 0),
+    # Walk-in (legitimate)
+    ("walk in drive tcs software developer 2 years experience saturday 10am bangalore", 0),
+    ("campus placement drive wipro btech mca batch 2024 ctc 3 6 lpa apply registration", 0),
+    ("job fair accenture infosys cognizant multiple openings 2 5 years salary 6 18 lpa", 0),
 ]
 
 _model = None

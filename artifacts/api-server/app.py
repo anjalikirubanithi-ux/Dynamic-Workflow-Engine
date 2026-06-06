@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify, flash, get_flashed_messages
 from werkzeug.security import generate_password_hash, check_password_hash
 import database as db
 import ai_detector
@@ -7,7 +7,12 @@ import ai_chat
 import os
 import base64
 import io
+import secrets
+import time
 from functools import wraps
+
+# In-memory reset tokens: {token: {'email': ..., 'expires': ...}}
+_reset_tokens = {}
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = os.environ.get('SESSION_SECRET', os.environ.get('SECRET_KEY', 'jobguard-ai-secret-2025'))
@@ -52,9 +57,11 @@ def login():
             session['full_name'] = user['full_name']
             session['email'] = user['email']
             session['is_admin'] = user['role'] == 'admin'
+            session['_login_success'] = f"Welcome back, {user['full_name'].split()[0]}! 👋"
             return redirect(url_for('dashboard'))
         error = 'Invalid email or password'
-    return render_template('login.html', error=error)
+    success = None
+    return render_template('login.html', error=error, success=success)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -80,6 +87,7 @@ def register():
             session['full_name'] = full_name
             session['email'] = email
             session['is_admin'] = False
+            session['_login_success'] = f"Account created! Welcome to JobGuard AI, {full_name.split()[0]}! 🎉"
             return redirect(url_for('dashboard'))
     return render_template('register.html', error=error)
 
@@ -88,6 +96,53 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+# ── Forgot / Reset Password ────────────────────────────────────────────────
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    error = None
+    success = None
+    token = None
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        user = db.get_user_by_email(email)
+        if user:
+            # Generate a secure token valid for 30 minutes
+            tok = secrets.token_urlsafe(32)
+            _reset_tokens[tok] = {'email': email, 'expires': time.time() + 1800}
+            # Clean up old tokens
+            expired = [k for k, v in _reset_tokens.items() if v['expires'] < time.time()]
+            for k in expired:
+                del _reset_tokens[k]
+            token = tok
+            success = f"Reset link generated for {email}. Click the button below to set your new password."
+        else:
+            error = 'No account found with that email address.'
+    return render_template('forgot_password.html', error=error, success=success, token=token)
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    entry = _reset_tokens.get(token)
+    if not entry or entry['expires'] < time.time():
+        return render_template('reset_password.html', token=token,
+                               error='This reset link has expired or is invalid. Please request a new one.')
+    error = None
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        confirm = request.form.get('confirm_password', '')
+        if len(password) < 6:
+            error = 'Password must be at least 6 characters.'
+        elif password != confirm:
+            error = 'Passwords do not match.'
+        else:
+            db.update_user_password(entry['email'], generate_password_hash(password))
+            del _reset_tokens[token]
+            return redirect('/login?reset=1')
+    return render_template('reset_password.html', token=token, error=error)
+
 # ── Dashboard ─────────────────────────────────────────────────────────────
 @app.route('/dashboard')
 @login_required
@@ -95,7 +150,8 @@ def dashboard():
     stats = db.get_user_stats(session['user_id'])
     recent = db.get_recent_analyses(session['user_id'], limit=5)
     chart_data = db.get_chart_data(session['user_id'])
-    return render_template('dashboard.html', stats=stats, recent=recent, chart_data=chart_data)
+    login_msg = session.pop('_login_success', None)
+    return render_template('dashboard.html', stats=stats, recent=recent, chart_data=chart_data, login_success=login_msg)
 
 @app.route('/api/ai-briefing')
 @login_required

@@ -4,6 +4,13 @@
 {% set active = 'dashboard' %}
 
 {% block content %}
+{% if login_success %}
+<div id="loginSuccessToast" style="position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:14px 28px;border-radius:12px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(22,163,74,.35);display:flex;align-items:center;gap:10px;animation:slideDown .4s ease;white-space:nowrap">
+  ✅ {{ login_success }}
+</div>
+<style>@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>
+<script>setTimeout(()=>{const t=document.getElementById('loginSuccessToast');if(t){t.style.transition='opacity .5s';t.style.opacity='0';setTimeout(()=>t.remove(),500)}},3500)</script>
+{% endif %}
 <div class="page-header">
   <div>
     <div class="page-title">Dashboard Overview</div>

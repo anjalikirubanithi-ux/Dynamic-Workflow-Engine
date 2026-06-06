@@ -263,6 +263,12 @@ def update_user_status(user_id, status):
     conn.commit()
     conn.close()
 
+def update_user_password(email, new_hash):
+    conn = get_conn()
+    conn.execute("UPDATE users SET password_hash=? WHERE email=?", (new_hash, email.lower()))
+    conn.commit()
+    conn.close()
+
 def delete_user(user_id):
     conn = get_conn()
     conn.execute("DELETE FROM users WHERE id=?", (user_id,))

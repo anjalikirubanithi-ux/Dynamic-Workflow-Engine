@@ -5,8 +5,29 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Login – JobGuard AI</title>
 <link rel="stylesheet" href="/static/css/style.css">
+<style>
+.toast-popup{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:14px 28px;border-radius:12px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(22,163,74,.35);display:flex;align-items:center;gap:10px;animation:slideDown .4s ease}
+@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
 </head>
 <body>
+{% if success %}
+<div class="toast-popup" id="successToast">✅ {{ success }}</div>
+<script>setTimeout(()=>{const t=document.getElementById('successToast');if(t){t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(()=>t.remove(),400)}},3000)</script>
+{% endif %}
+<script>
+(function(){
+  const p = new URLSearchParams(window.location.search);
+  if(p.get('reset')==='1'){
+    const d=document.createElement('div');
+    d.className='toast-popup';d.id='resetToast';
+    d.textContent='🔐 Password updated successfully! Please login with your new password.';
+    document.body.prepend(d);
+    setTimeout(()=>{d.style.transition='opacity .4s';d.style.opacity='0';setTimeout(()=>d.remove(),400)},4000);
+  }
+})();
+</script>
+
 <div class="auth-page">
   <div class="auth-card">
     <div class="auth-logo">
@@ -22,13 +43,16 @@
     <form method="POST" action="/login">
       <div class="form-group">
         <label>Email</label>
-        <input type="email" name="email" placeholder="user@gmail.com" required value="{{ request.form.get('email','') }}">
+        <input type="email" name="email" placeholder="user@gmail.com" required value="{{ request.form.get('email','') }}" autofocus>
       </div>
       <div class="form-group">
         <label>Password</label>
         <input type="password" name="password" placeholder="••••••••" required>
       </div>
-      <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:8px">Login</button>
+      <div style="text-align:right;margin-top:-6px;margin-bottom:12px">
+        <a href="/forgot-password" style="font-size:12px;color:#3b82f6;text-decoration:none;font-weight:600">Forgot Password?</a>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Login</button>
     </form>
     <div style="margin-top:16px;padding:14px;background:#f8fafc;border-radius:8px;font-size:12px;color:#64748b">
       <strong>Demo accounts:</strong><br>

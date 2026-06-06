@@ -22,7 +22,7 @@
     <form method="POST" action="/register">
       <div class="form-group">
         <label>Full Name</label>
-        <input type="text" name="full_name" placeholder="John Doe" required value="{{ request.form.get('full_name','') }}">
+        <input type="text" name="full_name" placeholder="John Doe" required value="{{ request.form.get('full_name','') }}" autofocus>
       </div>
       <div class="form-group">
         <label>Email Address</label>
