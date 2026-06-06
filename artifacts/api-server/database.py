@@ -340,6 +340,47 @@ def get_chart_data(user_id):
     conn.close()
     return [dict(r) for r in reversed(rows)]
 
+def get_insights_data(user_id):
+    conn = get_conn()
+    # Score distribution in 5 buckets
+    buckets = {}
+    for label, lo, hi in [('0–20',0,20),('21–40',21,40),('41–60',41,60),('61–80',61,80),('81–100',81,100)]:
+        col = 'fraud_score'
+        n = conn.execute(f"SELECT COUNT(*) FROM analyses WHERE user_id=? AND {col} BETWEEN ? AND ?", (user_id, lo, hi)).fetchone()[0]
+        buckets[label] = n
+    # Input type breakdown
+    rows = conn.execute("SELECT input_type, COUNT(*) as cnt FROM analyses WHERE user_id=? GROUP BY input_type", (user_id,)).fetchall()
+    input_types = {r['input_type']: r['cnt'] for r in rows}
+    # 30-day trend
+    trend = conn.execute("""
+        SELECT date(created_at) as day,
+               COUNT(*) as total,
+               SUM(CASE WHEN result='safe' THEN 1 ELSE 0 END) as safe,
+               SUM(CASE WHEN result='fake' THEN 1 ELSE 0 END) as fake,
+               SUM(CASE WHEN result='suspicious' THEN 1 ELSE 0 END) as suspicious,
+               ROUND(AVG(fraud_score),1) as avg_score
+        FROM analyses WHERE user_id=? AND created_at >= date('now','-30 days')
+        GROUP BY day ORDER BY day
+    """, (user_id,)).fetchall()
+    # Score stats
+    stats_row = conn.execute("""
+        SELECT ROUND(AVG(fraud_score),1) as avg_score,
+               MAX(fraud_score) as max_score,
+               MIN(fraud_score) as min_score,
+               MIN(date(created_at)) as first_date
+        FROM analyses WHERE user_id=?
+    """, (user_id,)).fetchone()
+    conn.close()
+    return {
+        'score_distribution': buckets,
+        'input_types': input_types,
+        'trend_30d': [dict(r) for r in trend],
+        'avg_score': stats_row['avg_score'] or 0,
+        'max_score': stats_row['max_score'] or 0,
+        'min_score': stats_row['min_score'] or 0,
+        'first_date': stats_row['first_date'] or '—',
+    }
+
 def save_feedback(analysis_id, user_id, is_correct):
     conn = get_conn()
     conn.execute("DELETE FROM feedback WHERE analysis_id=? AND user_id=?", (analysis_id, user_id))

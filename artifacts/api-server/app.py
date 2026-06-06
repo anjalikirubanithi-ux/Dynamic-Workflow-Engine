@@ -263,9 +263,9 @@ def history():
 @login_required
 def insights():
     stats = db.get_user_stats(session['user_id'])
-    chart_data = db.get_chart_data(session['user_id'])
+    ins = db.get_insights_data(session['user_id'])
     analyses = db.get_all_analyses(session['user_id'])
-    return render_template('insights.html', stats=stats, chart_data=chart_data, analyses=analyses)
+    return render_template('insights.html', stats=stats, ins=ins, analyses=analyses)
 
 # ── Job Portal ────────────────────────────────────────────────────────────
 @app.route('/jobs')
