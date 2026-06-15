@@ -29,7 +29,7 @@
         Dashboard
       </a>
 
-      <div class="nav-section">Administration</div>
+      <div class="nav-section">Admin Panel</div>
       <a href="/admin" class="nav-item {% if active=='admin' %}active{% endif %}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         Admin Overview
@@ -51,7 +51,10 @@
         Platform Analytics
       </a>
 
-      <div class="nav-section">User Tools</div>
+      <div class="nav-section" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Testing &amp; Monitoring</span>
+        <span style="font-size:9px;font-weight:700;background:#1e40af;color:#93c5fd;padding:2px 7px;border-radius:10px;letter-spacing:.04em">ADMIN</span>
+      </div>
       <a href="/analyze" class="nav-item {% if active=='analyze' %}active{% endif %}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         Analyze Job
@@ -59,15 +62,7 @@
       </a>
       <a href="/history" class="nav-item {% if active=='history' %}active{% endif %}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        History
-      </a>
-      <a href="/jobs" class="nav-item {% if active=='jobs' %}active{% endif %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-        Job Portal
-      </a>
-      <a href="/my-applications" class="nav-item {% if active=='applications' %}active{% endif %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        My Applications
+        Analysis History
       </a>
       <a href="/insights" class="nav-item {% if active=='insights' %}active{% endif %}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -75,11 +70,7 @@
       </a>
       <a href="/report" class="nav-item {% if active=='report' %}active{% endif %}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Cybercrime Report
-      </a>
-      <a href="/profile" class="nav-item {% if active=='profile' %}active{% endif %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Profile
+        Cybercrime Reports
       </a>
 
       {% else %}
