@@ -417,48 +417,79 @@ def get_model():
 
 # ── Keyword rules ──────────────────────────────────────────────────────────
 FAKE_KEYWORDS = [
+    # Must-have fee signals (very strong indicators)
     (r'registration fee|joining fee|advance fee|deposit required|pay.*to.*join|pay.*registration', 40),
-    (r'earn \d{3,} daily|earn \d{3,} per day|\d{3,} per (day|hour|page|click|task)', 30),
-    (r'5000 daily|3000 daily|10000 daily|1 lakh.*monthly.*guaranteed|50000.*weekly', 35),
-    (r'no experience (needed|required).*earn|earn.*no experience.*needed', 22),
-    (r'whatsapp (me|group|interview|only|number|now)|whatsapp \d{10}', 22),
-    (r'telegram (group|channel|join|link)|join.*telegram', 22),
-    (r'guaranteed (income|job|salary|profit|placement|selection)|100% (guaranteed|placement|job)', 28),
-    (r'mlm|network marketing|binary plan|pyramid scheme|direct selling plan', 30),
-    (r'lottery|prize money|winner selected|claim.*fee|lucky winner', 35),
-    (r'abroad job.*fee|overseas.*processing fee|visa.*fee.*required|processing fee.*visa', 32),
-    (r'zero investment.*earn|no investment.*earn|earn without investment', 20),
-    (r'housewife.*earn|student.*earn.*daily|retired.*earn.*daily', 15),
-    (r'pay.*training fee|training fee.*required|pay.*get.*job', 30),
-    (r'security deposit.*job|pay.*security deposit|deposit.*start (work|job)', 28),
-    (r'instant (selection|job|hiring)|immediately (selected|join|start)', 15),
-    (r'unlimited (earn|income)|earn unlimited|passive income.*join', 20),
+    (r'pay.*training fee|training fee.*required|pay.*get.*job|security deposit.*job|pay.*security deposit', 32),
+    (r'lottery|prize money|winner selected|claim.*fee|lucky winner', 38),
+    (r'mlm|network marketing|binary plan|pyramid scheme|direct selling plan', 32),
+    (r'abroad job.*fee|overseas.*processing fee|visa.*fee.*required|processing fee.*visa', 34),
+    (r'crypto.*guaranteed|bitcoin.*earn.*guaranteed|forex.*guaranteed profit', 32),
+    # Strong signals (multiple per post required to be significant)
+    (r'earn \d{4,} daily|earn \d{4,} per day|\d{4,} per (day|page|click|task)', 28),
+    (r'5000 daily|10000 daily|1 lakh.*monthly.*guaranteed|50000.*weekly.*guaranteed', 32),
+    (r'guaranteed (income|salary|profit)|100% (guaranteed|placement|job)', 25),
+    (r'whatsapp (me|group|interview|only|number|now)|whatsapp \d{10}', 20),
+    (r'telegram (group|channel|join|link)|join.*telegram', 20),
+    (r'zero investment.*earn|no investment.*earn|earn without investment', 18),
     (r'copy paste (job|work)|form filling job earn|survey.*earn.*daily', 20),
     (r'ghar baithe|ghar se kaam|घर बैठे', 18),
-    (r'crypto.*guaranteed|bitcoin.*earn.*guaranteed|forex.*guaranteed profit', 30),
-    (r'refer.*earn|earn.*per referral|recruitment commission', 18),
+    (r'refer.*earn per referral|recruitment commission.*join', 15),
+    (r'earn by watching|earn per like|earn per click|earn per comment', 22),
+    # Weaker signals (need other signals to matter)
+    (r'no experience (needed|required).*earn \d|earn \d.*no experience', 18),
+    (r'housewife.*earn \d{3,}|student.*earn \d{3,} daily|retired.*earn \d{3,}', 14),
+    (r'unlimited (earn|income)|earn unlimited|passive income.*join.*fee', 16),
 ]
 
 SAFE_KEYWORDS = [
+    # Strong safe signals
+    (r'(linkedin|naukri|indeed|glassdoor|shine|monster|instahyre|foundit|timesjobs|hirist)\.com', -25),
+    (r'@(infosys|tcs|wipro|google|microsoft|amazon|hcl|accenture|flipkart|capgemini|cognizant|techm|zomato|swiggy|ola|paytm|deloitte|pwc|kpmg|ibm|oracle|sap)\.com', -28),
+    (r'(background|reference|police)\s*(check|verification)', -15),
+    (r'(technical|hr|aptitude|panel|written)\s*(interview|round|test|assessment)', -18),
+    (r'(official|company|corporate)\s*(portal|website|careers?\s*page)|apply.*careers.*page', -20),
+    (r'apply (through|via|at|on)\s*(linkedin|naukri|indeed|glassdoor|shine|company\s*website)', -18),
+    # Salary/CTC signals
+    (r'\d+\s*[-–]\s*\d+\s*lpa|\d+\s*lpa|\bctc\b|cost to company|per annum', -15),
+    (r'salary\s*[:=]?\s*₹?\s*\d|\bsalary range\b|salary band|compensation', -12),
+    # Experience and qualification signals
     (r'\d+\s*(years?|yrs?)\s*(of\s*)?(experience|exp)', -15),
-    (r'(lpa|ctc|per annum|cost to company|salary range|salary:\s*\d)', -12),
-    (r'(bachelor|btech|b\.?tech|mtech|m\.?tech|mba|m\.?b\.?a|degree|graduate)\s*(required|preferred|degree)', -12),
-    (r'(technical|hr|aptitude|panel|written)\s*(interview|round|test|assessment)', -15),
-    (r'(official|company|corporate)\s*(portal|website|page|channel)|apply.*careers.*page', -18),
-    (r'(background|reference|police)\s*(check|verification)', -12),
-    (r'@(infosys|tcs|wipro|google|microsoft|amazon|hcl|accenture|flipkart|capgemini|cognizant|techm|zomato|swiggy|ola|paytm)\.com', -25),
-    (r'(hybrid|on-site|onsite|remote)\s*(work|position|role|option)', -8),
-    (r'(portfolio|resume|cv|curriculum vitae)\s*(required|mandatory|needed)', -10),
-    (r'(pmp|ccna|aws certified|azure|cfa|ca|llb|mbbs|bpt|bsc nursing|phd)\s*(certification|qualified|preferred|required)?', -12),
-    (r'(esop|equity|stock option)', -10),
-    (r'(quarterly|annual|performance)\s*(bonus|appraisal|review)', -8),
-    (r'(health|medical|dental)\s*(insurance|benefits|cover)', -8),
-    (r'notice period|joining (date|immediately|asap)', -5),
-    (r'apply (through|via|at|on)\s*(linkedin|naukri|indeed|glassdoor|shine)', -15),
+    (r'(bachelor|btech|b\.?tech|mtech|m\.?tech|mba|m\.?b\.?a|degree|graduate)\s*(required|preferred|in)', -12),
+    (r'(pmp|ccna|aws certified|azure|cfa|ca|llb|mbbs|bpt|bsc nursing|phd)\b', -12),
+    # Professional job content signals
+    (r'\b(responsibilities|qualifications?|requirements?|key skills?|job description|about the (role|company|team))\b', -14),
+    (r'\b(notice period|probation|onboarding|joining date|offer letter|appointment letter)\b', -10),
+    (r'(hybrid|on-site|onsite)\s*(work|position|role)|work from office|wfo', -8),
+    (r'(portfolio|resume|cv|curriculum vitae)\s*(required|mandatory|needed|attached)', -10),
+    (r'(esop|equity|stock option|rsu)', -12),
+    (r'(health|medical|dental)\s*(insurance|benefits|cover)|provident fund|gratuity', -10),
+    (r'(quarterly|annual|half.?yearly|performance)\s*(bonus|appraisal|review|increment)', -8),
 ]
 
-def _rule_score(text):
-    score = 38
+# Trusted job portal domains — domain-level trust bonus
+TRUSTED_DOMAINS = [
+    'linkedin.com', 'naukri.com', 'indeed.com', 'glassdoor.com', 'shine.com',
+    'monster.com', 'instahyre.com', 'foundit.in', 'timesjobs.com', 'hirist.tech',
+    'internshala.com', 'freshersworld.com', 'iimjobs.com', 'cutshort.io',
+    'wellfound.com', 'angel.co', 'lever.co', 'greenhouse.io', 'workday.com',
+    'smartrecruiters.com', 'jobs.tcs.com', 'infosys.com', 'wipro.com',
+    'careers.google.com', 'amazon.jobs', 'microsoft.com', 'careers.flipkart.com',
+]
+
+def _domain_trust_bonus(source_url):
+    if not source_url:
+        return 0
+    url_lower = source_url.lower()
+    for domain in TRUSTED_DOMAINS:
+        if domain in url_lower:
+            return -28
+    # Company career pages (contains /careers/ or /jobs/)
+    if re.search(r'\.(com|in|io|co)\/(careers?|jobs?|openings?|work-with-us)', url_lower):
+        return -15
+    return 0
+
+def _rule_score(text, source_url=None):
+    score = 25  # neutral baseline — needs real fake signals to become suspicious
     tl = text.lower()
     for pattern, w in FAKE_KEYWORDS:
         if re.search(pattern, tl):
@@ -466,23 +497,28 @@ def _rule_score(text):
     for pattern, w in SAFE_KEYWORDS:
         if re.search(pattern, tl):
             score += w
+    score += _domain_trust_bonus(source_url)
     return max(0, min(100, score))
 
-def analyze(content, input_type='text'):
+def analyze(content, input_type='text', source_url=None):
     text = content.strip()
     model = get_model()
-    rule = _rule_score(text)
+    rule = _rule_score(text, source_url)
 
     if model is not None and isinstance(model, dict):
         try:
             X = model['combiner'].transform([text])
             lr_proba = model['lr'].predict_proba(X)[0]
             svm_proba = model['svm'].predict_proba(X)[0]
-            # Ensemble: average LR and SVM
             fake_prob = (float(lr_proba[1]) + float(svm_proba[1])) / 2.0
             ml_score = int(fake_prob * 100)
-            # Blend: 70% ML ensemble + 30% rules
-            fraud_score = int(ml_score * 0.70 + rule * 0.30)
+            # For URL input: trust rules more (scraped text is noisy for ML)
+            if input_type == 'url':
+                fraud_score = int(ml_score * 0.55 + rule * 0.45)
+            else:
+                fraud_score = int(ml_score * 0.70 + rule * 0.30)
+            # Apply domain trust bonus directly to final score too
+            fraud_score += _domain_trust_bonus(source_url)
         except Exception:
             fraud_score = rule
     else:

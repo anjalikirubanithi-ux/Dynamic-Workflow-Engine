@@ -301,9 +301,10 @@ async function analyzeJob() {
   overlay.style.display = 'flex';
   simulateSteps();
   try {
+    const sourceUrl = currentTab === 'url' ? (document.getElementById('contentUrl').value.trim() || '') : '';
     const res = await fetch('/api/analyze', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ input_type: currentTab, content, job_title: document.getElementById('jobTitle').value })
+      body: JSON.stringify({ input_type: currentTab, content, job_title: document.getElementById('jobTitle').value, source_url: sourceUrl })
     });
     const data = await res.json();
     if (data.id) {

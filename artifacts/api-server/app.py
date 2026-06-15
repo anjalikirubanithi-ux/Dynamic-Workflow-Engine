@@ -174,10 +174,11 @@ def api_analyze():
     input_type = data.get('input_type', 'text')
     content = data.get('content', '').strip()
     job_title = data.get('job_title', '').strip()
+    source_url = data.get('source_url', '').strip() if input_type == 'url' else None
     if not content:
         return jsonify({'error': 'Content is required'}), 400
     try:
-        result = ai_detector.analyze(content, input_type)
+        result = ai_detector.analyze(content, input_type, source_url=source_url)
         analysis_id = db.save_analysis(
             user_id=session['user_id'],
             input_type=input_type,
