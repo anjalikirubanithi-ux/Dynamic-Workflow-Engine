@@ -338,15 +338,29 @@ async function sendChat() {
   addTyping();
   try {
     const res = await fetch('/api/chat', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({ message: msg, analysis: insightCtx })
     });
+    if (res.status === 401) {
+      removeTyping();
+      addMessage('⚠️ Session expired. Please <a href="/login" style="color:#2563eb">log in again</a> to use the AI assistant.', 'ai');
+      document.getElementById('chatSendBtn').disabled = false;
+      return;
+    }
+    if (!res.ok) {
+      removeTyping();
+      addMessage('⚠️ Server error (' + res.status + '). Please try again.', 'ai');
+      document.getElementById('chatSendBtn').disabled = false;
+      return;
+    }
     const data = await res.json();
     removeTyping();
-    addMessage(data.response || 'Sorry, I could not process that.', 'ai');
+    addMessage(data.response || data.error || 'Sorry, I could not process that.', 'ai');
   } catch(e) {
     removeTyping();
-    addMessage('Sorry, there was an error. Please try again.', 'ai');
+    addMessage('⚠️ Network error. Please check your connection and try again.', 'ai');
   }
   document.getElementById('chatSendBtn').disabled = false;
 }

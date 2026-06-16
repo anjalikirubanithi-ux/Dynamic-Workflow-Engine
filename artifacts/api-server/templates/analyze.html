@@ -69,6 +69,13 @@
         </div>
         <input type="file" id="imageFile" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
       </div>
+      <!-- Extract button — shown after image is loaded -->
+      <div id="ocrExtractRow" style="display:none;margin-bottom:14px">
+        <button class="btn btn-secondary" id="ocrExtractBtn" onclick="runOCR()" style="width:100%">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Extract Text from Image
+        </button>
+      </div>
       <div id="ocrStatus" style="display:none" class="form-group">
         <label>Extracted Text <small style="font-weight:400;color:#64748b">(edit if needed)</small></label>
         <textarea id="contentImage" style="min-height:120px;font-size:12px"></textarea>
@@ -264,34 +271,53 @@ function handleImageSelect(input) {
 
 function processImage(file) {
   const reader = new FileReader();
-  reader.onload = async function(e) {
+  reader.onload = function(e) {
     imageB64 = e.target.result;
     document.getElementById('imagePreview').src = imageB64;
     document.getElementById('imagePreview').style.display = 'block';
     document.getElementById('dropPlaceholder').style.display = 'none';
-
-    // Try OCR
-    try {
-      const res = await fetch('/api/ocr', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({image: imageB64})
-      });
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById('contentImage').value = data.text;
-        document.getElementById('ocrStatus').style.display = 'block';
-        document.getElementById('ocrFallback').style.display = 'none';
-      } else if (data.fallback) {
-        document.getElementById('ocrFallback').style.display = 'block';
-        document.getElementById('ocrStatus').style.display = 'none';
-      } else {
-        document.getElementById('ocrFallback').style.display = 'block';
-      }
-    } catch(e) {
-      document.getElementById('ocrFallback').style.display = 'block';
-    }
+    document.getElementById('ocrExtractRow').style.display = 'block';
+    document.getElementById('ocrStatus').style.display = 'none';
+    document.getElementById('ocrFallback').style.display = 'none';
+    document.getElementById('contentImage').value = '';
   };
   reader.readAsDataURL(file);
+}
+
+async function runOCR() {
+  if (!imageB64) return;
+  const btn = document.getElementById('ocrExtractBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>Extracting text...';
+  try {
+    const res = await fetch('/api/ocr', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      credentials: 'same-origin',
+      body: JSON.stringify({image: imageB64})
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('contentImage').value = data.text;
+      document.getElementById('ocrStatus').style.display = 'block';
+      document.getElementById('ocrFallback').style.display = 'none';
+      btn.innerHTML = '✅ Text Extracted — edit below if needed';
+      btn.style.background = '#f0fdf4';
+      btn.style.color = '#16a34a';
+      btn.style.borderColor = '#86efac';
+    } else if (data.error && data.error.includes('No text found')) {
+      btn.innerHTML = '⚠️ No text detected — try a clearer image';
+      btn.disabled = false;
+    } else {
+      document.getElementById('ocrFallback').style.display = 'block';
+      btn.innerHTML = '⚠️ OCR failed — paste text manually below';
+      btn.style.color = '#d97706';
+    }
+  } catch(err) {
+    document.getElementById('ocrFallback').style.display = 'block';
+    btn.innerHTML = '⚠️ Error — paste text manually below';
+    btn.disabled = false;
+  }
 }
 
 async function analyzeJob() {
