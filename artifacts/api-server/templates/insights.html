@@ -15,23 +15,23 @@
   </a>
 </div>
 
+{% set fake_pct = ((stats.fake / stats.total) * 100) | round(1) if stats.total > 0 else 0 %}
+{% set safe_pct = ((stats.safe / stats.total) * 100) | round(1) if stats.total > 0 else 0 %}
+
 {% if stats.total == 0 %}
-<div class="card card-body" style="text-align:center;padding:60px 20px">
+<!-- Empty state -->
+<div class="card card-body" style="text-align:center;padding:60px 20px;margin-bottom:20px">
   <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" style="margin:0 auto 16px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
   <div style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:8px">No analytics data yet</div>
   <div style="font-size:14px;color:#64748b;margin-bottom:20px">Analyze some jobs to see your personal fraud detection insights here.</div>
   <a href="/analyze" class="btn btn-primary">Start Analyzing Jobs</a>
 </div>
-{% else %}
 
-<!-- ── Row 1: Personal Safety Score + Score Stats ─────────────────────── -->
-{% set fake_pct = ((stats.fake / stats.total) * 100) | round(1) if stats.total > 0 else 0 %}
-{% set safe_pct = ((stats.safe / stats.total) * 100) | round(1) if stats.total > 0 else 0 %}
+{% else %}
 {% set safety_score = (100 - (ins.avg_score | float)) | round(0) | int %}
 
+<!-- ── Row 1: Safety Score + Stats ── -->
 <div style="display:grid;grid-template-columns:280px 1fr;gap:20px;margin-bottom:20px">
-
-  <!-- Safety Score Gauge -->
   <div class="card card-body" style="text-align:center;padding:28px 20px">
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#64748b;margin-bottom:16px">Your Safety Score</div>
     <div style="position:relative;width:160px;height:160px;margin:0 auto 16px">
@@ -53,7 +53,6 @@
     {% endif %}
   </div>
 
-  <!-- Score Stats Grid -->
   <div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:16px">
     <div class="card card-body" style="padding:20px">
       <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Avg Fraud Score</div>
@@ -67,17 +66,13 @@
       <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Highest Risk Seen</div>
       <div style="font-size:32px;font-weight:900;color:#dc2626">{{ ins.max_score }}</div>
       <div style="font-size:12px;color:#94a3b8">most dangerous job found</div>
-      <div style="margin-top:8px;font-size:12px;padding:5px 10px;background:#fef2f2;color:#dc2626;border-radius:6px;display:inline-block;font-weight:600">
-        🚨 Extreme Scam
-      </div>
+      <div style="margin-top:8px;font-size:12px;padding:5px 10px;background:#fef2f2;color:#dc2626;border-radius:6px;display:inline-block;font-weight:600">🚨 Extreme Scam</div>
     </div>
     <div class="card card-body" style="padding:20px">
       <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Safest Job Found</div>
       <div style="font-size:32px;font-weight:900;color:#16a34a">{{ ins.min_score }}</div>
       <div style="font-size:12px;color:#94a3b8">lowest fraud score</div>
-      <div style="margin-top:8px;font-size:12px;padding:5px 10px;background:#f0fdf4;color:#16a34a;border-radius:6px;display:inline-block;font-weight:600">
-        ✅ Very Safe
-      </div>
+      <div style="margin-top:8px;font-size:12px;padding:5px 10px;background:#f0fdf4;color:#16a34a;border-radius:6px;display:inline-block;font-weight:600">✅ Very Safe</div>
     </div>
     <div class="card card-body" style="padding:20px">
       <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Fake Detection Rate</div>
@@ -92,7 +87,7 @@
   </div>
 </div>
 
-<!-- ── Row 2: Score Distribution + Input Type ─────────────────────────── -->
+<!-- ── Row 2: Score Distribution + Input Type ── -->
 <div class="grid-2" style="margin-bottom:20px">
   <div class="card">
     <div class="card-header">
@@ -118,9 +113,8 @@
       <canvas id="inputTypeChart" style="width:150px!important;height:150px!important;max-width:150px"></canvas>
       <div style="display:flex;flex-direction:column;gap:12px">
         {% set type_colors = {'text': '#3b82f6', 'url': '#8b5cf6', 'email': '#f59e0b', 'image': '#10b981'} %}
-        {% set type_icons = {'text': '📝', 'url': '🔗', 'email': '📧', 'image': '🖼️'} %}
-        {% set all_types = ['text', 'url', 'email', 'image'] %}
-        {% for t in all_types %}
+        {% set type_icons  = {'text': '📝', 'url': '🔗', 'email': '📧', 'image': '🖼️'} %}
+        {% for t in ['text','url','email','image'] %}
         {% set cnt = ins.input_types.get(t, 0) %}
         <div style="display:flex;align-items:center;gap:10px">
           <div style="width:12px;height:12px;border-radius:3px;background:{{ type_colors[t] }};flex-shrink:0"></div>
@@ -135,9 +129,8 @@
   </div>
 </div>
 
-<!-- ── Row 3: Verdict Breakdown + AI Chat ──────────────────────────────── -->
+<!-- ── Row 3: Verdict Breakdown + AI Chat ── -->
 <div class="grid-2">
-  <!-- Verdict breakdown cards -->
   <div style="display:flex;flex-direction:column;gap:16px">
     <div class="card card-body" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;padding:20px">
       <div style="display:flex;align-items:center;gap:14px">
@@ -152,7 +145,6 @@
         <div class="risk-bar-fill safe" style="width:{{ safe_pct }}%"></div>
       </div>
     </div>
-
     <div class="card card-body" style="background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1.5px solid #fca5a5;padding:20px">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="width:48px;height:48px;background:#dc2626;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px">🚫</div>
@@ -166,7 +158,6 @@
         <div class="risk-bar-fill fake" style="width:{{ fake_pct }}%"></div>
       </div>
     </div>
-
     <div class="card card-body" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1.5px solid #fcd34d;padding:20px">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="width:48px;height:48px;background:#d97706;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px">⚠️</div>
@@ -179,8 +170,8 @@
     </div>
   </div>
 
-  <!-- AI Chat Assistant -->
-  <div class="card" style="display:flex;flex-direction:column">
+  <!-- AI Chat Widget -->
+  <div class="card" style="display:flex;flex-direction:column" id="aiChatCard">
     <div class="card-body" style="padding-bottom:0;flex-shrink:0">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
         <div style="width:36px;height:36px;background:#0f172a;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -190,27 +181,21 @@
           <div style="font-weight:700;font-size:14px">JobGuard AI Assistant</div>
           <div style="font-size:12px;color:#64748b">Ask anything about job fraud or your stats</div>
         </div>
-        <span style="background:#f0fdf4;color:#16a34a;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">● Online</span>
+        <span id="chatStatus" style="background:#f0fdf4;color:#16a34a;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">● Online</span>
       </div>
     </div>
-
-    <!-- Messages -->
     <div id="chatMessages" style="flex:1;min-height:200px;max-height:280px;overflow-y:auto;padding:0 20px 10px;display:flex;flex-direction:column;gap:10px">
       <div style="background:#f8fafc;border-radius:12px;padding:12px 14px;font-size:13px;color:#374151;border:1px solid #e2e8f0;max-width:92%;line-height:1.6">
-        👋 Hi! I'm your JobGuard AI Assistant. You've analyzed <strong>{{ stats.total }} jobs</strong> — found <strong style="color:#dc2626">{{ stats.fake }} fake</strong> and <strong style="color:#16a34a">{{ stats.safe }} safe</strong>.<br><br>
+        👋 Hi! I'm your JobGuard AI Assistant. You've analyzed <strong>{{ stats.total }} job{{ 's' if stats.total != 1 else '' }}</strong> — found <strong style="color:#dc2626">{{ stats.fake }} fake</strong> and <strong style="color:#16a34a">{{ stats.safe }} safe</strong>.<br><br>
         Ask me anything about job fraud, scam patterns, or how to stay safe! 🛡️
       </div>
     </div>
-
-    <!-- Quick questions -->
     <div style="padding:8px 20px;display:flex;gap:7px;flex-wrap:wrap;flex-shrink:0">
       <button class="btn btn-sm btn-secondary" onclick="quickAsk('What are the top job scam warning signs?')">⚠️ Warning signs?</button>
       <button class="btn btn-sm btn-secondary" onclick="quickAsk('How can I verify if a company is real?')">🔍 Verify company?</button>
       <button class="btn btn-sm btn-secondary" onclick="quickAsk('How to report cybercrime in India?')">📋 How to report?</button>
-      <button class="btn btn-sm btn-secondary" onclick="quickAsk('What should I never share during job applications?')">🔒 Stay safe?</button>
+      <button class="btn btn-sm btn-secondary" onclick="quickAsk('How does the JobGuard AI fraud detection work?')">🤖 How it works?</button>
     </div>
-
-    <!-- Input -->
     <div style="padding:10px 20px 18px;border-top:1px solid #f1f5f9;display:flex;gap:10px;flex-shrink:0">
       <input type="text" id="chatInput" placeholder="Ask me anything about job fraud..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')sendChat()">
       <button class="btn btn-primary" onclick="sendChat()" id="chatSendBtn" style="white-space:nowrap">
@@ -220,175 +205,132 @@
     </div>
   </div>
 </div>
-
 {% endif %}
+
+<!-- AI Chat always shown when no data (standalone) -->
+{% if stats.total == 0 %}
+<div class="card" style="display:flex;flex-direction:column" id="aiChatCard">
+  <div class="card-body" style="padding-bottom:0;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:36px;height:36px;background:#0f172a;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px">JobGuard AI Assistant</div>
+        <div style="font-size:12px;color:#64748b">Ask anything about job fraud or safe job hunting</div>
+      </div>
+      <span id="chatStatus" style="background:#f0fdf4;color:#16a34a;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">● Online</span>
+    </div>
+  </div>
+  <div id="chatMessages" style="flex:1;min-height:180px;max-height:280px;overflow-y:auto;padding:0 20px 10px;display:flex;flex-direction:column;gap:10px">
+    <div style="background:#f8fafc;border-radius:12px;padding:12px 14px;font-size:13px;color:#374151;border:1px solid #e2e8f0;max-width:92%;line-height:1.6">
+      👋 Hi! I'm JobGuard AI. I can help you learn about job fraud, spot scam patterns, and stay safe even before you run your first analysis.<br><br>
+      Try one of the questions below! 🛡️
+    </div>
+  </div>
+  <div style="padding:8px 20px;display:flex;gap:7px;flex-wrap:wrap;flex-shrink:0">
+    <button class="btn btn-sm btn-secondary" onclick="quickAsk('What are the top job scam warning signs?')">⚠️ Warning signs?</button>
+    <button class="btn btn-sm btn-secondary" onclick="quickAsk('How can I verify if a company is real?')">🔍 Verify company?</button>
+    <button class="btn btn-sm btn-secondary" onclick="quickAsk('How to report cybercrime in India?')">📋 How to report?</button>
+    <button class="btn btn-sm btn-secondary" onclick="quickAsk('How does the JobGuard AI fraud detection work?')">🤖 How it works?</button>
+  </div>
+  <div style="padding:10px 20px 18px;border-top:1px solid #f1f5f9;display:flex;gap:10px;flex-shrink:0">
+    <input type="text" id="chatInput" placeholder="Ask me anything about job fraud..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="btn btn-primary" onclick="sendChat()" id="chatSendBtn" style="white-space:nowrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Send
+    </button>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block scripts %}
-{% if stats.total > 0 %}
 <script>
+{% if stats.total > 0 %}
 const ins = {{ ins | tojson }};
-const stats = { safe: {{ stats.safe }}, fake: {{ stats.fake }}, suspicious: {{ stats.suspicious }} };
-
-// ── Safety Score Gauge (doughnut) ──
 const safetyScore = {{ safety_score }};
 const gaugeColor = safetyScore >= 70 ? '#16a34a' : safetyScore >= 40 ? '#d97706' : '#dc2626';
 new Chart(document.getElementById('gaugeChart'), {
   type: 'doughnut',
-  data: {
-    datasets: [{
-      data: [safetyScore, 100 - safetyScore],
-      backgroundColor: [gaugeColor, '#f1f5f9'],
-      borderWidth: 0,
-    }]
-  },
-  options: {
-    responsive: false,
-    cutout: '72%',
-    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-    animation: { duration: 1200, easing: 'easeInOutQuart' }
-  }
+  data: { datasets: [{ data: [safetyScore, 100-safetyScore], backgroundColor: [gaugeColor,'#f1f5f9'], borderWidth: 0 }] },
+  options: { responsive: false, cutout: '72%', plugins: { legend:{display:false}, tooltip:{enabled:false} }, animation:{duration:1200,easing:'easeInOutQuart'} }
 });
-
-// ── Score Distribution Bar Chart ──
 const distLabels = Object.keys(ins.score_distribution);
 const distValues = Object.values(ins.score_distribution);
-const distColors = distLabels.map(l => {
-  const lo = parseInt(l.split('–')[0]);
-  if (lo <= 20) return '#16a34a';
-  if (lo <= 40) return '#4ade80';
-  if (lo <= 60) return '#fbbf24';
-  if (lo <= 80) return '#f97316';
-  return '#dc2626';
-});
+const distColors = distLabels.map(l => { const lo=parseInt(l.split('–')[0]); return lo<=20?'#16a34a':lo<=40?'#4ade80':lo<=60?'#fbbf24':lo<=80?'#f97316':'#dc2626'; });
 new Chart(document.getElementById('distChart'), {
-  type: 'bar',
-  data: {
-    labels: distLabels,
-    datasets: [{
-      label: 'Jobs',
-      data: distValues,
-      backgroundColor: distColors,
-      borderRadius: 8,
-      borderSkipped: false,
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: { label: ctx => ` ${ctx.raw} job${ctx.raw !== 1 ? 's' : ''}` }
-      }
-    },
-    scales: {
-      y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } },
-      x: { grid: { display: false } }
-    },
-    animation: { duration: 900, easing: 'easeOutBounce' }
-  }
+  type:'bar', data:{labels:distLabels,datasets:[{label:'Jobs',data:distValues,backgroundColor:distColors,borderRadius:8,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} job${ctx.raw!==1?'s':''}`}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}},animation:{duration:900}}
 });
-
-// ── Input Type Donut ──
-const typeLabels = ['text', 'url', 'email', 'image'];
-const typeColors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'];
-const typeValues = typeLabels.map(t => ins.input_types[t] || 0);
 new Chart(document.getElementById('inputTypeChart'), {
-  type: 'doughnut',
-  data: {
-    labels: typeLabels.map(t => t.charAt(0).toUpperCase() + t.slice(1)),
-    datasets: [{
-      data: typeValues,
-      backgroundColor: typeColors,
-      borderWidth: 2,
-      borderColor: '#fff'
-    }]
-  },
-  options: {
-    responsive: false,
-    cutout: '60%',
-    plugins: {
-      legend: { display: false },
-      tooltip: { callbacks: { label: ctx => ` ${ctx.raw} ${ctx.label} analysis` } }
-    },
-    animation: { duration: 1000 }
-  }
+  type:'doughnut',
+  data:{labels:['Text','URL','Email','Image'],datasets:[{data:['text','url','email','image'].map(t=>ins.input_types[t]||0),backgroundColor:['#3b82f6','#8b5cf6','#f59e0b','#10b981'],borderWidth:2,borderColor:'#fff'}]},
+  options:{responsive:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} ${ctx.label}`}}},animation:{duration:1000}}
 });
-
-// ── AI Chat ──
 const insightCtx = {
-  result: null,
   fraud_score: {{ ins.avg_score }},
   risk_level: '{{ "high" if ins.avg_score > 65 else "medium" if ins.avg_score > 35 else "low" }}'
 };
+{% else %}
+const insightCtx = {};
+{% endif %}
 
-function quickAsk(question) {
-  document.getElementById('chatInput').value = question;
-  sendChat();
-}
+function quickAsk(q) { document.getElementById('chatInput').value = q; sendChat(); }
 
 async function sendChat() {
   const input = document.getElementById('chatInput');
   const msg = input.value.trim();
   if (!msg) return;
   input.value = '';
-  document.getElementById('chatSendBtn').disabled = true;
-  addMessage(msg, 'user');
+  const btn = document.getElementById('chatSendBtn');
+  btn.disabled = true;
+  addMsg(msg, 'user');
   addTyping();
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
+      credentials: 'include',
       body: JSON.stringify({ message: msg, analysis: insightCtx })
     });
-    if (res.status === 401) {
-      removeTyping();
-      addMessage('⚠️ Session expired. Please <a href="/login" style="color:#2563eb">log in again</a> to use the AI assistant.', 'ai');
-      document.getElementById('chatSendBtn').disabled = false;
-      return;
-    }
-    if (!res.ok) {
-      removeTyping();
-      addMessage('⚠️ Server error (' + res.status + '). Please try again.', 'ai');
-      document.getElementById('chatSendBtn').disabled = false;
-      return;
-    }
-    const data = await res.json();
     removeTyping();
-    addMessage(data.response || data.error || 'Sorry, I could not process that.', 'ai');
+    if (res.ok) {
+      const data = await res.json();
+      addMsg(data.response || 'No response. Please try again.', 'ai');
+    } else {
+      const err = await res.json().catch(() => ({}));
+      addMsg('⚠️ ' + (err.error || 'Server error. Please try again.'), 'ai');
+    }
   } catch(e) {
     removeTyping();
-    addMessage('⚠️ Network error. Please check your connection and try again.', 'ai');
+    addMsg('⚠️ Could not reach server. Check connection and try again.', 'ai');
   }
-  document.getElementById('chatSendBtn').disabled = false;
+  btn.disabled = false;
+  input.focus();
 }
 
-function addMessage(text, type) {
-  const container = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  const isAI = type === 'ai';
-  div.style.cssText = `background:${isAI ? '#f8fafc' : '#eff6ff'};border-radius:12px;padding:12px 14px;font-size:13px;color:#374151;border:1px solid ${isAI ? '#e2e8f0' : '#bfdbfe'};max-width:92%;line-height:1.6;${isAI ? '' : 'align-self:flex-end;margin-left:auto'}`;
-  div.innerHTML = isAI ? text : `<strong style="color:#2563eb">You:</strong> ${text}`;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+function addMsg(text, type) {
+  const box = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  const ai = type === 'ai';
+  d.style.cssText = `background:${ai?'#f8fafc':'#eff6ff'};border-radius:12px;padding:12px 14px;font-size:13px;color:#374151;border:1px solid ${ai?'#e2e8f0':'#bfdbfe'};max-width:92%;line-height:1.6;${ai?'':'align-self:flex-end;margin-left:auto'}`;
+  d.innerHTML = ai ? text : `<strong style="color:#2563eb">You:</strong> ${text}`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
 }
 
 function addTyping() {
-  const container = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.id = 'typingIndicator';
-  div.style.cssText = 'background:#f8fafc;border-radius:12px;padding:12px 14px;font-size:13px;color:#94a3b8;border:1px solid #e2e8f0;max-width:92%';
-  div.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>AI is thinking...';
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+  const box = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.id = 'typing';
+  d.style.cssText = 'background:#f8fafc;border-radius:12px;padding:12px 14px;font-size:13px;color:#94a3b8;border:1px solid #e2e8f0;max-width:92%';
+  d.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>AI is thinking...';
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
 }
 
-function removeTyping() {
-  const el = document.getElementById('typingIndicator');
-  if (el) el.remove();
-}
+function removeTyping() { const e = document.getElementById('typing'); if (e) e.remove(); }
 </script>
-{% endif %}
 {% endblock %}

@@ -227,8 +227,8 @@ def api_ocr():
 
 # ── AI Chat ───────────────────────────────────────────────────────────────
 @app.route('/api/chat', methods=['POST'])
-@login_required
 def api_chat():
+    # Soft auth — knowledge-base fallback works even without session
     data = request.get_json(force=True, silent=True) or {}
     message = data.get('message', '').strip()
     context = data.get('context', '')

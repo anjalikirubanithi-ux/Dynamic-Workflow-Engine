@@ -192,6 +192,7 @@ function openAddModal() {
   ['mTitle','mCompany','mLocation','mSalary','mScore','mDesc','mWhy'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('mJobType').value = 'Full-Time';
   document.getElementById('mStatus').value = 'verified';
+  document.getElementById('saveBtn').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Job';
   openModal();
 }
 
@@ -209,6 +210,7 @@ function openEditModal(jobId) {
   document.getElementById('mStatus').value = job.verification_status || 'verified';
   document.getElementById('mDesc').value = job.description || '';
   document.getElementById('mWhy').value = job.why_legitimate || '';
+  document.getElementById('saveBtn').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/></svg> Update Job';
   openModal();
 }
 
