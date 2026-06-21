@@ -454,6 +454,33 @@ def api_admin_job(job_id):
     db.log_admin_action(session['user_id'], 'job_updated', f'job:{job_id}')
     return jsonify({'message': 'Job updated successfully'})
 
+# ── Admin: Real-time AI score preview ──────────────────────────────────────
+@app.route('/api/admin/score-preview', methods=['POST'])
+@admin_required
+def api_admin_score_preview():
+    data = request.get_json(force=True, silent=True) or {}
+    description = (data.get('description') or '').strip()
+    if not description or len(description) < 10:
+        return jsonify({'error': 'Need at least 10 characters'}), 400
+    detection = ai_detector.analyze(description)
+    fraud_score = detection.get('fraud_score', 50)
+    result = detection.get('result', 'suspicious')
+    confidence = detection.get('confidence_score', 50)
+    # AI trust score for job portal (inverse of fraud score)
+    if result == 'safe':
+        trust_score = confidence
+    else:
+        trust_score = 100 - fraud_score
+    trust_score = max(0, min(100, int(trust_score)))
+    return jsonify({
+        'trust_score': trust_score,
+        'fraud_score': fraud_score,
+        'result': result,
+        'verdict': 'SAFE ✅' if result == 'safe' else ('SUSPICIOUS ⚠️' if result == 'suspicious' else 'FAKE 🚫'),
+        'suggested_status': 'verified' if result == 'safe' else 'suspicious',
+        'key_reasons': detection.get('key_reasons', [])[:3]
+    })
+
 # ── Health ─────────────────────────────────────────────────────────────────
 @app.route('/api/healthz')
 def healthz():

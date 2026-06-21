@@ -137,12 +137,42 @@ const JOB_DATA = {{ jobs | tojson }};
       </div>
     </div>
     <div class="form-group">
-      <label>AI Trust Score (0–100)</label>
-      <input type="number" id="mScore" min="0" max="100" placeholder="Auto-calculated from description if blank">
+      <label>Job Description *
+        <span id="scoringBadge" style="display:none;margin-left:8px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;background:#eff6ff;color:#2563eb">⚡ Scoring live...</span>
+      </label>
+      <textarea id="mDesc" placeholder="Full job description... (AI score calculates automatically as you type)" style="min-height:110px" oninput="scheduleScore()"></textarea>
     </div>
-    <div class="form-group">
-      <label>Job Description *</label>
-      <textarea id="mDesc" placeholder="Full job description..." style="min-height:100px"></textarea>
+
+    <!-- Live AI Score Panel -->
+    <div id="aiScorePanel" style="display:none;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin-bottom:14px;background:#f8fafc">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:#374151;display:flex;align-items:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Live AI Fraud Analysis
+        </div>
+        <span id="liveVerdict" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:8px;background:#f0fdf4;color:#16a34a">—</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div style="text-align:center;padding:10px;background:white;border-radius:8px;border:1px solid #e2e8f0">
+          <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Trust Score</div>
+          <div id="liveTrustScore" style="font-size:26px;font-weight:900;color:#16a34a">—</div>
+          <div style="font-size:10px;color:#94a3b8">/ 100 (for Job Portal)</div>
+        </div>
+        <div style="text-align:center;padding:10px;background:white;border-radius:8px;border:1px solid #e2e8f0">
+          <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Fraud Score</div>
+          <div id="liveFraudScore" style="font-size:26px;font-weight:900;color:#dc2626">—</div>
+          <div style="font-size:10px;color:#94a3b8">/ 100 (risk level)</div>
+        </div>
+      </div>
+      <div class="risk-bar" style="height:8px;margin-bottom:8px">
+        <div id="liveBar" class="risk-bar-fill safe" style="width:0%;transition:width .4s ease"></div>
+      </div>
+      <div id="liveReasons" style="font-size:12px;color:#64748b;min-height:16px"></div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:#64748b;font-weight:600">Suggested Status:</span>
+        <span id="liveSuggested" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:#f0fdf4;color:#16a34a">—</span>
+        <button type="button" onclick="applySuggested()" style="font-size:11px;padding:3px 10px;border:1px solid #cbd5e1;border-radius:6px;background:white;cursor:pointer;font-weight:600;color:#374151">Apply ↑</button>
+      </div>
     </div>
     <div class="form-group">
       <label>Why Legitimate (shown for verified jobs)</label>
@@ -186,13 +216,101 @@ function closeModal() {
   document.getElementById('jobModal').style.display = 'none';
 }
 
+// ── Live AI Scoring ──────────────────────────────────────────────────────
+let _scoreTimer = null;
+let _lastScored = '';
+let _liveAiScore = null;
+
+function scheduleScore() {
+  clearTimeout(_scoreTimer);
+  const desc = document.getElementById('mDesc').value.trim();
+  if (desc.length < 10) {
+    document.getElementById('aiScorePanel').style.display = 'none';
+    document.getElementById('scoringBadge').style.display = 'none';
+    _liveAiScore = null;
+    return;
+  }
+  document.getElementById('scoringBadge').style.display = 'inline';
+  _scoreTimer = setTimeout(() => fetchScore(desc), 600);
+}
+
+async function fetchScore(desc) {
+  if (desc === _lastScored) return;
+  _lastScored = desc;
+  try {
+    const res = await fetch('/api/admin/score-preview', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      credentials: 'same-origin',
+      body: JSON.stringify({ description: desc })
+    });
+    if (!res.ok) return;
+    const d = await res.json();
+    _liveAiScore = d.trust_score;
+    document.getElementById('aiScorePanel').style.display = 'block';
+    document.getElementById('scoringBadge').style.display = 'none';
+
+    // Trust score
+    const trustEl = document.getElementById('liveTrustScore');
+    const color = d.result === 'safe' ? '#16a34a' : d.result === 'suspicious' ? '#d97706' : '#dc2626';
+    trustEl.textContent = d.trust_score;
+    trustEl.style.color = color;
+
+    // Fraud score
+    const fraudEl = document.getElementById('liveFraudScore');
+    const fcolor = d.fraud_score <= 35 ? '#16a34a' : d.fraud_score <= 65 ? '#d97706' : '#dc2626';
+    fraudEl.textContent = d.fraud_score;
+    fraudEl.style.color = fcolor;
+
+    // Verdict badge
+    const v = document.getElementById('liveVerdict');
+    v.textContent = d.verdict;
+    v.style.background = d.result === 'safe' ? '#f0fdf4' : d.result === 'suspicious' ? '#fffbeb' : '#fef2f2';
+    v.style.color = color;
+
+    // Risk bar
+    const bar = document.getElementById('liveBar');
+    bar.style.width = d.fraud_score + '%';
+    bar.className = 'risk-bar-fill ' + (d.result === 'safe' ? 'safe' : d.result === 'suspicious' ? 'suspicious' : 'fake');
+
+    // Key reasons
+    const reasons = d.key_reasons || [];
+    document.getElementById('liveReasons').innerHTML = reasons.length
+      ? '🔍 ' + reasons.map(r => `<span style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:1px 7px;margin-right:4px;font-size:11px">${r}</span>`).join('')
+      : '<span style="color:#94a3b8;font-size:11px">No specific risk signals detected</span>';
+
+    // Suggested status
+    const sug = document.getElementById('liveSuggested');
+    sug.textContent = d.suggested_status === 'verified' ? '✅ Verified' : '⚠️ Suspicious';
+    sug.style.background = d.suggested_status === 'verified' ? '#f0fdf4' : '#fffbeb';
+    sug.style.color = d.suggested_status === 'verified' ? '#16a34a' : '#d97706';
+  } catch(e) {
+    document.getElementById('scoringBadge').style.display = 'none';
+  }
+}
+
+function applySuggested() {
+  const sug = document.getElementById('liveSuggested').textContent;
+  document.getElementById('mStatus').value = sug.includes('Verified') ? 'verified' : 'suspicious';
+  showToast('✅ Verification status updated from AI suggestion');
+}
+
+function resetScorePanel() {
+  _liveAiScore = null;
+  _lastScored = '';
+  document.getElementById('aiScorePanel').style.display = 'none';
+  document.getElementById('scoringBadge').style.display = 'none';
+}
+
+// ── Modal open/close ─────────────────────────────────────────────────────
 function openAddModal() {
   document.getElementById('editJobId').value = '';
   document.getElementById('modalTitle').textContent = 'Add New Job';
-  ['mTitle','mCompany','mLocation','mSalary','mScore','mDesc','mWhy'].forEach(id => document.getElementById(id).value = '');
+  ['mTitle','mCompany','mLocation','mSalary','mDesc','mWhy'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('mJobType').value = 'Full-Time';
   document.getElementById('mStatus').value = 'verified';
   document.getElementById('saveBtn').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Job';
+  resetScorePanel();
   openModal();
 }
 
@@ -206,12 +324,16 @@ function openEditModal(jobId) {
   document.getElementById('mLocation').value = job.location || '';
   document.getElementById('mJobType').value = job.job_type || 'Full-Time';
   document.getElementById('mSalary').value = job.salary || '';
-  document.getElementById('mScore').value = job.ai_score || '';
   document.getElementById('mStatus').value = job.verification_status || 'verified';
   document.getElementById('mDesc').value = job.description || '';
   document.getElementById('mWhy').value = job.why_legitimate || '';
   document.getElementById('saveBtn').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/></svg> Update Job';
+  resetScorePanel();
   openModal();
+  // Auto-score existing description
+  if (job.description && job.description.length >= 10) {
+    setTimeout(() => fetchScore(job.description), 300);
+  }
 }
 
 async function saveJob() {
@@ -228,7 +350,7 @@ async function saveJob() {
     location: document.getElementById('mLocation').value,
     job_type: document.getElementById('mJobType').value,
     salary: document.getElementById('mSalary').value,
-    ai_score: parseInt(document.getElementById('mScore').value) || null,
+    ai_score: _liveAiScore,   // use live-calculated score; null = backend will auto-calculate
     verification_status: document.getElementById('mStatus').value,
     description: document.getElementById('mDesc').value,
     why_legitimate: document.getElementById('mWhy').value
